@@ -1,0 +1,7 @@
+{
+    "scripts": {
+        "compile": "node ./node_modules/typescript/bin/tsc -p ./src",
+        "watch": "node ./node_modules/typescript/bin/tsc -w -p ./src",
+        "run": "node ./node_modules/typescript/bin/tsc -p ./src && node ./out/app.js"
+    }
+}
