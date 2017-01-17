@@ -7,7 +7,7 @@ import * as assert from 'assert';
 suite('Lexer test', () => {
     test('tokenize test', () => {
         let line = "CASL2 START";
-        let result = Lexer.tokenize(line);
+        let result = Lexer.tokenize(line, 3);
         if (result instanceof CompileError) {
             throw new Error("error");
         } else {

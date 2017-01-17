@@ -41,7 +41,7 @@ if (errors.length != 0) {
 }
 
 
-Lexer.tokenize("; THIS IS COMMENT");
-Lexer.tokenize("CASL START   "); // TODO: 最後の空文字は無視するようにする
-Lexer.tokenize("ADD    ADDA GR0, GR1");
-Lexer.tokenize("ADD    ADDA GR0, GR1;windows");
+Lexer.tokenize("CASL START   ", 1); // TODO: 最後の空文字は無視するようにする
+Lexer.tokenize("ADD    ADDA GR0, GR1", 1);
+Lexer.tokenize("ADDA GR0, GR1;windows", 1);
+Lexer.tokenize("; THIS IS COMMENT", 1);
