@@ -21,8 +21,6 @@ for (var i = 0; i < splits.length; i++) {
     let line = splits[i];
     let lineNumber = i + 1;
 
-    // TODO: パースする
-
     console.log(line);
 }
 
@@ -41,7 +39,17 @@ if (errors.length != 0) {
 }
 
 
-Lexer.tokenize("CASL START   ", 1); // TODO: 最後の空文字は無視するようにする
-Lexer.tokenize("ADD    ADDA GR0, GR1", 1);
-Lexer.tokenize("ADDA GR0, GR1;windows", 1);
-Lexer.tokenize("; THIS IS COMMENT", 1);
+let result = Lexer.tokenize("1L  ADDA GR1, GR2", 1);
+// コメント行か?
+if (result instanceof CompileError) {
+
+} else {
+    if (result.instruction == "LAD") {
+        // LAD命令の処理をする
+    }
+    if (result.instruction == "ADDA") {
+        // ADDA命令の処理をする
+    }
+}
+
+console.log(result.toString());

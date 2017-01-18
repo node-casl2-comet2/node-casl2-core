@@ -1,25 +1,30 @@
 'use strict';
 import { GR } from '../comet2/gr';
 import { CompileError } from '../errors/compileError';
-import { InvalidInstructionError, InvalidLabelError } from '../errors/errors';
+import { InvalidInstructionError, InvalidLabelError, ArgumentError } from '../errors/errors';
 
 export class Lexer {
     public static tokenize(line: string, lineNumber: number): LexerResult | CompileError {
-        let label = "";
-        let instruction = "";
-        let r1 = GR.GR1;
-        let r2 = GR.GR2;
-        let address: number | string = 123;
-        let comment = null;
+        let label: string;
+        let instruction: string;
+        let r1: GR;
+        let r2: GR;
+        let address: number | string;
+        let comment: string;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
         if (semicolonIndex >= 0) {
+            // コメント行の場合
+            if (semicolonIndex == 0) return new LexerResult(label, instruction, r1, r2, address, str);
+
             comment = line.slice(semicolonIndex);
             str = line.substring(0, semicolonIndex);
         }
 
-        let split = str.split(/\s+|,\s+/);
+        // TODO: コンマの区切りは引数の間にのみで使えるので
+        //       ラベルと命令の間には使えないようにする
+        let split = str.replace(/\s+$/, '').split(/\s+|,\s+/);
         let index = 0;
         let first = split[index];
         if (Lexer.isInstruction(first)) {
@@ -29,10 +34,8 @@ export class Lexer {
         } else {
             // 1つ目のトークンがラベルの場合            
             // 正常なラベルか?
+            if (!Lexer.isLabel(first)) return new InvalidLabelError(lineNumber);
             if (Lexer.isGR(first)) return new InvalidLabelError(lineNumber);
-
-            // 空白かもしれない
-            if (first == "") return new InvalidLabelError(lineNumber);
 
             label = first;
 
@@ -45,82 +48,111 @@ export class Lexer {
             index++;
         }
 
+        // 引数のパターンは4種類
+        // 0. なし
+        // 1. GR, GR
+        // 2. GR, アドレス, GR
+        // 3. アドレス, GR
 
-        let toGR = (gr: string) => {
-            if (gr == "GR0") return GR.GR0;
-            if (gr == "GR1") return GR.GR1;
-            if (gr == "GR2") return GR.GR2;
-            if (gr == "GR3") return GR.GR3;
-            if (gr == "GR4") return GR.GR4;
-            if (gr == "GR5") return GR.GR5;
-            if (gr == "GR6") return GR.GR6;
-            if (gr == "GR7") return GR.GR7;
-        };
-        // 命令の後の1つ目のトークンはレジスタまたはアドレス
-        let arg1 = split[index];
-        console.log("ARG1: " + arg1);
-        if (Lexer.isGR(arg1)) {
-            r1 = toGR(arg1);
-        } else if (Lexer.toAddress(arg1)) {
+        // 引数の数を求める
+        let argCount = split.length - index;
 
+        if (argCount > 0) {
+            // 命令の後の1つ目のトークンはレジスタまたはアドレス
+            let arg1 = split[index++];
+            if (Lexer.isGR(arg1)) {
+                r1 = Lexer.toGR(arg1);
+
+                let arg2 = split[index++];
+                // GRまたはアドレス
+                if (Lexer.isGR(arg2)) {
+                    // GR, GRのパターン
+                    r2 = Lexer.toGR(arg2);
+                } else {
+                    // GR, アドレス, GRのパターン
+                    let adr = Lexer.toAddress(arg2);
+                    if (!adr) return new ArgumentError(lineNumber);
+
+                    address = adr;
+
+                    let arg3 = split[index];
+                    // arg3は存在しないかもしれない
+                    if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
+
+                    r2 = Lexer.toGR(arg3);
+                }
+            } else {
+                // アドレス， GRのパターン
+                let adr = Lexer.toAddress(arg1);
+                if (!adr) return new ArgumentError(lineNumber);
+
+                address = adr;
+
+                let arg2 = split[index];
+                if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
+
+                r1 = Lexer.toGR(arg2);
+            }
         }
-
-        // 命令の後の2つ目のトークンはレジスタまたはアドレス
-
-        // 命令の後の3つ目のトークンは指標レジスタのみ
-
-
-        console.log(split);
 
         return new LexerResult(label, instruction, r1, r2, address, comment);
     }
 
     private static isLabel(str: string): boolean {
         // 1文字目が大文字で2文字目以降は大文字または数字である
-        let regex = /[A-Z][A-Z0-9]*/;
+        let regex = /\b[A-Z][A-Z0-9]*\b/;
         let result = str.match(regex);
-        return result != null;
+        return result != null && str.length <= 8;
     }
 
     private static isInstruction(str: string): boolean {
-        // TODO: 行頭と行末のチェックを入れる
-        let regex = /START|LAD|ADDA|RET|END/;
+        let regex = /\bSTART|LAD|ADDA|RET|END\b/;
         let result = str.match(regex);
         return result != null;
     }
 
     private static isGR(str: string): boolean {
-        let regex = /GR0|GR1|GR2|GR3|GR4|GR5|GR6|GR7/;
+        let regex = /\bGR0|GR1|GR2|GR3|GR4|GR5|GR6|GR7\b/;
         let result = str.match(regex);
         return result != null;
     }
 
-    // TODO: booleanではなく直接値を返すように変更
-    private static toAddress(str: string): boolean {
+    private static toGR = (gr: string) => {
+        if (gr == "GR0") return GR.GR0;
+        if (gr == "GR1") return GR.GR1;
+        if (gr == "GR2") return GR.GR2;
+        if (gr == "GR3") return GR.GR3;
+        if (gr == "GR4") return GR.GR4;
+        if (gr == "GR5") return GR.GR5;
+        if (gr == "GR6") return GR.GR6;
+        if (gr == "GR7") return GR.GR7;
+    };
+
+    private static toAddress(str: string): string | number | undefined {
         // アドレスはラベル名で指定されるかも
-        if (Lexer.isLabel(str)) return true;
+        if (Lexer.isLabel(str)) return str;
 
         // アドレスはリテラルかも
         // 1文字目と末尾の文字がシングルクォーテーションである
-        if (str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return true;
+        if (str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
 
         // アドレスは16進数かも
         // 16進定数は#で始まる数字の連続である
         if (str.charAt(0) == '#') {
             let address = parseInt(str.slice(1), 16);
-            if (isNaN(address)) return false;
+            if (isNaN(address)) return address;
         }
 
         // アドレスは10進数かも
         // マイナスはあり得ない
-        if (str.charAt(0) == '-') return false;
+        if (str.charAt(0) == '-') return undefined;
         // 10進数と解釈して変換する
         // 変換に失敗するとNaNが返る
         let address = parseInt(str, 10);
         if (isNaN(address)) {
-            return false;
+            return undefined;
         } else {
-            return true;
+            return address;
         }
     }
 }
@@ -131,10 +163,10 @@ export class LexerResult {
     private _instruction: string;
     private _r1: GR;
     private _r2: GR;
-    private _address: number;
+    private _address: number | string;
     private _comment;
 
-    constructor(label: string, instruction: string, r1: GR, r2: GR, address: number, comment?: string) {
+    constructor(label: string, instruction: string, r1: GR, r2: GR, address: number | string, comment?: string) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;
@@ -162,4 +194,20 @@ export class LexerResult {
     public get address() {
         return this._address;
     }
+
+    public get comment() {
+        return this._comment;
+    }
+
+    public toString() {
+        return [
+            "Label:", this.label,
+            "Instruction:", this.instruction,
+            "r1:", this.r1,
+            "r2:", this.r2,
+            "Address:", this.address,
+            "Comment:", this._comment].join(" ");
+    }
+
+    // TODO: コメント行かどうかを返す
 }

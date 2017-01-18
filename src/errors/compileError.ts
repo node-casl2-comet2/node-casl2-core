@@ -36,7 +36,9 @@ export class CompileError {
         return this._endIndex;
     }
 
-    public toString(){
-        return this._message;
+    public toString() {
+        return [
+            "Message:", this.message,
+            "Line:", this.lineNumber].join(" ");
     }
 }
