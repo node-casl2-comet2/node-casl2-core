@@ -39,16 +39,34 @@ if (errors.length != 0) {
 }
 
 
-let result = Lexer.tokenize("1L  ADDA GR1, GR2", 1);
-// コメント行か?
+let result = Lexer.tokenize("NOP", 1);
 if (result instanceof CompileError) {
 
 } else {
-    if (result.instruction == "LAD") {
-        // LAD命令の処理をする
-    }
-    if (result.instruction == "ADDA") {
-        // ADDA命令の処理をする
+    if (result.isCommentLine) {
+        // コメント行なので無視する
+    } else {
+
+        if (result.instruction == "LAD") {
+            // LAD命令の処理をする
+            // rとアドレスが存在することをチェックする(両方なければエラーである)
+            if (!(result.r1 && result.address)) throw new Error();
+            let lad = Instructions.lad(result.label, result.r1, result.address, result.r2);
+            instructions.push(lad);
+        }
+        if (result.instruction == "ADDA") {
+            // ADDA命令の処理をする
+            // r1とr2またはr1とアドレスが存在することをチェックする
+            if (result.address) {
+                if (!result.r1) throw new Error();
+                let adda = Instructions.adda(result.label, result.r1, result.address, result.r2);
+                instructions.push(adda);
+            } else {
+                if (!(result.r1 && result.r2)) throw new Error();
+                let adda = Instructions.adda(result.label, result.r1, result.r2);
+                instructions.push(adda);
+            }
+        }
     }
 }
 

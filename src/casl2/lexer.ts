@@ -106,7 +106,7 @@ export class Lexer {
     }
 
     private static isInstruction(str: string): boolean {
-        let regex = /\bSTART|LAD|ADDA|RET|END\b/;
+        let regex = /\bSTART|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP\b/;
         let result = str.match(regex);
         return result != null;
     }
@@ -165,6 +165,7 @@ export class LexerResult {
     private _r2: GR;
     private _address: number | string;
     private _comment;
+    private _isCommentLine: boolean;
 
     constructor(label: string, instruction: string, r1: GR, r2: GR, address: number | string, comment?: string) {
         this._label = label;
@@ -173,6 +174,12 @@ export class LexerResult {
         this._r2 = r2;
         this._address = address;
         this._comment = comment;
+        this._isCommentLine = label == undefined &&
+            instruction == undefined &&
+            r1 == undefined &&
+            r2 == undefined &&
+            address == undefined &&
+            comment != undefined;
     }
 
     public get label() {
@@ -199,6 +206,9 @@ export class LexerResult {
         return this._comment;
     }
 
+    public get isCommentLine() {
+        return this._isCommentLine;
+    }
     public toString() {
         return [
             "Label:", this.label,
@@ -208,6 +218,4 @@ export class LexerResult {
             "Address:", this.address,
             "Comment:", this._comment].join(" ");
     }
-
-    // TODO: コメント行かどうかを返す
 }
