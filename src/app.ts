@@ -39,8 +39,7 @@ if (errors.length != 0) {
 }
 
 
-// JPL 5, GR2
-let result = Lexer.tokenize("JPL 5", 1);
+let result = Lexer.tokenize("POP GR1", 1);
 if (result instanceof CompileError) {
 
 } else {

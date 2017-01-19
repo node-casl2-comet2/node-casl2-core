@@ -345,7 +345,7 @@ suite("Instruction test", () => {
 
         assert.equal(instruction.toHex(), 0x65000005);
 
-        // r1, adr, xパターン
+        // adr, xパターン
         line = "JPL 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
@@ -353,19 +353,117 @@ suite("Instruction test", () => {
         assert.equal(instruction.toHex(), 0x65020005);
     });
 
-    // TODO: JMI命令
+    // JMI命令
+    test("JMI test", () => {
+        // adrパターン
+        let line = "JMI 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
 
-    // TODO: JNZ命令
+        assert.equal(instruction.toHex(), 0x61000005);
 
-    // TODO: JZE命令
+        // adr, xパターン
+        line = "JMI 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
 
-    // TODO: JOV命令
+        assert.equal(instruction.toHex(), 0x61020005);
+    });
 
-    // TODO: JUMP命令
+    // JNZ命令
+    test("JNZ test", () => {
+        // adrパターン
+        let line = "JNZ 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
 
-    // TODO: PUSH命令
+        assert.equal(instruction.toHex(), 0x62000005);
 
-    // TODO: POP命令
+        // adr, xパターン
+        line = "JNZ 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x62020005);
+    });
+
+    // JZE命令
+    test("JZE test", () => {
+        // adrパターン
+        let line = "JZE 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x63000005);
+
+        // adr, xパターン
+        line = "JZE 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x63020005);
+    });
+
+    // JOV命令
+    test("JOV test", () => {
+        // adrパターン
+        let line = "JOV 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x66000005);
+
+        // adr, xパターン
+        line = "JOV 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x66020005);
+    });
+
+    // JUMP命令
+    test("JUMP test", () => {
+        // adrパターン
+        let line = "JUMP 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x64000005);
+
+        // adr, xパターン
+        line = "JUMP 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x64020005);
+    });
+
+    // PUSH命令
+    test("PUSH test", () => {
+        // adrパターン
+        let line = "PUSH 5"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x70000005);
+
+        // adr, xパターン
+        line = "PUSH 5, GR2"
+        instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x70020005);
+    });
+
+    // POP命令
+        test("POP test", () => {
+        // rパターン
+        let line = "POP GR1"
+        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0x7110);;
+    });
 
     // TODO: CALL命令
 

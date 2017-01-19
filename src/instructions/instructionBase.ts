@@ -59,13 +59,12 @@ export class InstructionBase {
         if (!this._code) return -1;
 
         let hex = this._code;
-        if (this._r1) {
-            // 16進数で2桁左にずらす
-            hex = hex << 0x08;
-            // r2はundefinedかもしれない
-            let gr = (this._r1 << 0x04) | (this._r2 || 0);
-            hex = hex | gr;
-        }
+
+        // 16進数で2桁左にずらす
+        hex = hex << 0x08;
+        // r1とr2はundefinedかもしれない
+        let gr = ((this._r1 || 0) << 0x04) | (this._r2 || 0);
+        hex = hex | gr;
 
         if (this._address) {
             // 16進数で4桁左にずらす

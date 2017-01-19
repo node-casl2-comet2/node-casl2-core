@@ -48,11 +48,12 @@ export class Lexer {
             index++;
         }
 
-        // 引数のパターンは4種類
+        // 引数のパターンは5種類
         // 0. なし
-        // 1. GR, GR
-        // 2. GR, アドレス, GR
-        // 3. アドレス, GR
+        // 1. GR
+        // 2. GR, GR
+        // 3. GR, アドレス, GR
+        // 4. アドレス, GR
 
         // 引数の数を求める
         let argCount = split.length - index;
@@ -63,28 +64,30 @@ export class Lexer {
             if (Lexer.isGR(arg1)) {
                 r1 = Lexer.toGR(arg1);
 
-                let arg2 = split[index++];
-                // GRまたはアドレス
-                if (Lexer.isGR(arg2)) {
-                    // GR, GRのパターン
-                    r2 = Lexer.toGR(arg2);
-                } else {
-                    // GR, アドレス, GRのパターン
-                    let adr = Lexer.toAddress(arg2);
-                    if (!adr) return new ArgumentError(lineNumber);
+                if (argCount > 1) {
+                    let arg2 = split[index++];
+                    // GRまたはアドレス
+                    if (Lexer.isGR(arg2)) {
+                        // 2. GR, GRのパターン
+                        r2 = Lexer.toGR(arg2);
+                    } else {
+                        // 3. GR, アドレス, GRのパターン
+                        let adr = Lexer.toAddress(arg2);
+                        if (!adr) return new ArgumentError(lineNumber);
 
-                    address = adr;
+                        address = adr;
 
-                    // arg3は存在しないかもしれない
-                    if (argCount == 3) {
-                        let arg3 = split[index];
-                        if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
+                        // arg3は存在しないかもしれない
+                        if (argCount == 3) {
+                            let arg3 = split[index];
+                            if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
 
-                        r2 = Lexer.toGR(arg3);
+                            r2 = Lexer.toGR(arg3);
+                        }
                     }
                 }
             } else {
-                // アドレス， GRのパターン
+                // 4. アドレス， GRのパターン
                 let adr = Lexer.toAddress(arg1);
                 if (!adr) return new ArgumentError(lineNumber);
 
@@ -94,7 +97,7 @@ export class Lexer {
                     let arg2 = split[index];
                     if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
 
-                    r1 = Lexer.toGR(arg2);
+                    r2 = Lexer.toGR(arg2);
                 }
             }
         }

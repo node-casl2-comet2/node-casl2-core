@@ -56,28 +56,28 @@ export class Instructions {
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
         // TODO: IN | OUT の分類を決める
         // 引数を取らない命令(5個)
-        let noArgsInstRegex = /\bEND|RPUSH|RPOP|RET|NOP\b/;
+        let noArgsInstRegex = /\b(END|RPUSH|RPOP|RET|NOP)\b/;
 
         // rを引数に取る命令(1個)
-        let rInstRegex = /\bPOP\b/;
+        let rInstRegex = /\b(POP)\b/;
 
         // adr[, x]を引数に取る命令(9個)
-        let adrxInstRegex = /\bJPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|CALL|SVC\b/;
+        let adrxInstRegex = /\b(JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|CALL|SVC)\b/;
 
         // 引数にr, adr[, x]を取る命令(6個)
         let radrxInstRegex = /\b(ST|LAD|SLA|SRA|SLL|SRL)\b/;
 
         // 引数にr1, r2またはr, adr[, x]を取る命令(10個)
-        let r1r2InstRegex = /\bLD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL\b/;
+        let r1r2InstRegex = /\b(LD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL)\b/;
 
         // [adr]を引数に取る命令(1個)
         let adrInstRegex = /\b(START)\b/;
 
         // 数値を引数に取る命令(1個)
-        let numberArgsInstRegex = /\bDS\b/;
+        let numberArgsInstRegex = /\b(DS)\b/;
 
         // 定数列を引数に取る命令(1個)
-        let constArgsInstRegex = /\bDC\b/;
+        let constArgsInstRegex = /\b(DC)\b/;
 
         let inst = result.instruction;
         if (inst.match(noArgsInstRegex)) {
@@ -91,7 +91,7 @@ export class Instructions {
         else if (inst.match(rInstRegex)) {
             // r
             // r1のみがあることを確かめる
-            if (!(result.r1 && !result.r2 && !result.address)) return new ArgumentError(lineNumber);
+            if (!result.r1 || result.r2 || result.address) return new ArgumentError(lineNumber);
 
             let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1);
             return instBase;
@@ -99,9 +99,9 @@ export class Instructions {
         else if (inst.match(adrxInstRegex)) {
             // adr[, x]
             // アドレスがあること
-            if (!result.address || result.r2) return new ArgumentError(lineNumber);
+            if (!result.address || result.r1) return new ArgumentError(lineNumber);
 
-            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1, null, result.address);
+            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, null, result.r2, result.address);
             return instBase;
         }
         else if (inst.match(radrxInstRegex)) {
