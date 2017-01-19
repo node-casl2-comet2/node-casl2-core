@@ -75,11 +75,13 @@ export class Lexer {
 
                     address = adr;
 
-                    let arg3 = split[index];
                     // arg3は存在しないかもしれない
-                    if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
+                    if (argCount == 3) {
+                        let arg3 = split[index];
+                        if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
 
-                    r2 = Lexer.toGR(arg3);
+                        r2 = Lexer.toGR(arg3);
+                    }
                 }
             } else {
                 // アドレス， GRのパターン
@@ -88,10 +90,12 @@ export class Lexer {
 
                 address = adr;
 
-                let arg2 = split[index];
-                if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
+                if (argCount == 2) {
+                    let arg2 = split[index];
+                    if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
 
-                r1 = Lexer.toGR(arg2);
+                    r1 = Lexer.toGR(arg2);
+                }
             }
         }
 

@@ -1,6 +1,7 @@
 'use strict';
 
 import { GR } from '../comet2/gr';
+import { LabelMap } from '../data/labelMap';
 
 export class InstructionBase {
     private _lineNumber: number;
@@ -21,12 +22,13 @@ export class InstructionBase {
 
         if (address) {
             this._address = address;
-            // アドレスが分かっているなら確定してよい
+            // アドレスが数字なら確定してよい
             if (typeof address == "number") {
                 this._isConfirmed = true;
             }
         } else {
-            this._isConfirmed = false;
+            // アドレスが無いなら確定してよい
+            this._isConfirmed = true;
         }
     }
 
@@ -48,5 +50,35 @@ export class InstructionBase {
 
     public toString() {
         return [this._label, this._instructionName, this._r1, this._r2, this._address].join("   ");
+    }
+
+    public toHex(): number {
+        if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
+
+        // .comファイルに還元されない命令は-1を返す
+        if (!this._code) return -1;
+
+        let hex = this._code;
+        if (this._r1) {
+            // 16進数で2桁左にずらす
+            hex = hex << 0x08;
+            // r2はundefinedかもしれない
+            let gr = (this._r1 << 0x04) | (this._r2 || 0);
+            hex = hex | gr;
+        }
+
+        if (this._address) {
+            // 16進数で4桁左にずらす
+            hex = hex << 0x10;
+            hex = hex | this._address as number;
+        }
+
+        return hex;
+    }
+
+    public resolveAddress(labelMap: LabelMap) {
+        if (this._isConfirmed) return;
+
+        this._address = labelMap.get(this._address as string);
     }
 }

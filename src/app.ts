@@ -39,33 +39,19 @@ if (errors.length != 0) {
 }
 
 
-let result = Lexer.tokenize("NOP", 1);
+let result = Lexer.tokenize("START BEGIN", 1);
 if (result instanceof CompileError) {
 
 } else {
     if (result.isCommentLine) {
         // コメント行なので無視する
     } else {
-
-        if (result.instruction == "LAD") {
-            // LAD命令の処理をする
-            // rとアドレスが存在することをチェックする(両方なければエラーである)
-            if (!(result.r1 && result.address)) throw new Error();
-            let lad = Instructions.lad(result.label, result.r1, result.address, result.r2);
-            instructions.push(lad);
-        }
-        if (result.instruction == "ADDA") {
-            // ADDA命令の処理をする
-            // r1とr2またはr1とアドレスが存在することをチェックする
-            if (result.address) {
-                if (!result.r1) throw new Error();
-                let adda = Instructions.adda(result.label, result.r1, result.address, result.r2);
-                instructions.push(adda);
-            } else {
-                if (!(result.r1 && result.r2)) throw new Error();
-                let adda = Instructions.adda(result.label, result.r1, result.r2);
-                instructions.push(adda);
-            }
+        let inst = Instructions.create(result, 1);
+        if (inst instanceof InstructionBase) {
+           console.log(inst.toHex());
+            instructions.push(inst);
+        } else {
+            // コンパイルエラー
         }
     }
 }
