@@ -39,7 +39,8 @@ if (errors.length != 0) {
 }
 
 
-let result = Lexer.tokenize("START BEGIN", 1);
+// JPL 5, GR2
+let result = Lexer.tokenize("JPL 5", 1);
 if (result instanceof CompileError) {
 
 } else {
@@ -48,7 +49,7 @@ if (result instanceof CompileError) {
     } else {
         let inst = Instructions.create(result, 1);
         if (inst instanceof InstructionBase) {
-           console.log(inst.toHex());
+            console.log(inst.toHex());
             instructions.push(inst);
         } else {
             // コンパイルエラー
