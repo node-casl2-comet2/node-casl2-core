@@ -33,7 +33,7 @@ if (errors.length != 0) {
 }
 
 
-let result = Lexer.tokenize("POP GR1", 1);
+let result = Lexer.tokenize("NOP", 1);
 if (result instanceof CompileError) {
 
 } else {

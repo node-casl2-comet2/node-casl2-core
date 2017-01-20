@@ -62,7 +62,7 @@ export class InstructionBase {
         if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
 
         // .comファイルに還元されない命令は-1を返す
-        if (!this._code) return -1;
+        if (this._code == undefined) return -1;
 
         let hex = this._code;
 
@@ -74,8 +74,9 @@ export class InstructionBase {
 
         if (this._address) {
             // 16進数で4桁左にずらす
-            hex = hex << 0x10;
-            hex = hex | this._address as number;
+            // TODO: シフト演算を使うと32ビット扱いになってオーバーフローしてしまう
+            //       シフト演算でうまくやる方法はないか?
+            hex = hex * 65536 + (this._address as number);
         }
 
         return hex;
