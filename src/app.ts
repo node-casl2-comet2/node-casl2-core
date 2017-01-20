@@ -53,4 +53,6 @@ if (result instanceof CompileError) {
 
 console.log(result.toString());
 
-Writer.binaryWrite("temp.com");
+let buffer = Writer.createBinaryBuffer([0x8100, 0x8000]);
+Writer.binaryWrite("temp.com", [0x24120005, 0x8000]);
+console.log(buffer);
