@@ -6,6 +6,7 @@ import { InstructionBase } from './instructions/instructionBase';
 import { GR } from './comet2/gr';
 import { CompileError } from './errors/compileError';
 import { Lexer } from './casl2/lexer';
+import { Writer } from '../src/io/writer';
 
 // .casファイルを読み込む
 // .casファイルかどうかのバリデーションは外部でやる
@@ -51,3 +52,5 @@ if (result instanceof CompileError) {
 }
 
 console.log(result.toString());
+
+Writer.binaryWrite("temp.com");
