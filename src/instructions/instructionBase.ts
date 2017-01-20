@@ -7,13 +7,19 @@ export class InstructionBase {
     private _lineNumber: number;
     private _instructionName: string;
     private _isConfirmed: boolean;
-    private _r1: GR;
-    private _r2: GR;
-    private _address: number | string;
-    private _label: string;
-    private _code: number;
+    private _r1: GR | undefined;
+    private _r2: GR | undefined;
+    private _address: number | string | undefined;
+    private _label: string | undefined;
+    private _code: number | undefined;
 
-    constructor(instructionName: string, code?: number, label?: string, r1?: GR, r2?: GR, address?: number | string) {
+    constructor(
+        instructionName: string,
+        code: number | undefined,
+        label?: string | undefined,
+        r1?: GR | undefined,
+        r2?: GR | undefined,
+        address?: number | string | undefined) {
         this._instructionName = instructionName;
         this._code = code;
         this._label = label;

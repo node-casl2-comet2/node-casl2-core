@@ -5,7 +5,11 @@
 		"outDir": "out",
 		"moduleResolution": "node",
 		"inlineSourceMap": true,
-		"noImplicitAny": false,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"forceConsistentCasingInFileNames": true,
 		"removeComments": false,
 		"preserveConstEnums": true
 	}

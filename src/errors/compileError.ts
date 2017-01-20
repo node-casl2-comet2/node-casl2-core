@@ -9,9 +9,9 @@ export class CompileError {
     // エラーの行番号
     private _lineNumber: number;
     // エラーの始まりのインデックス
-    private _startIndex: number;
+    private _startIndex: number | undefined;
     // エラーの終わりのインデックス
-    private _endIndex: number;
+    private _endIndex: number | undefined;
 
     constructor(message: string, lineNumber: number, startIndex?: number, endIndex?: number) {
         this._message = message;

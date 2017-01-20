@@ -5,12 +5,12 @@ import { InvalidInstructionError, InvalidLabelError, ArgumentError } from '../er
 
 export class Lexer {
     public static tokenize(line: string, lineNumber: number): LexerResult | CompileError {
-        let label: string;
-        let instruction: string;
-        let r1: GR;
-        let r2: GR;
-        let address: number | string;
-        let comment: string;
+        let label: string | undefined;
+        let instruction: string | undefined;
+        let r1: GR | undefined;
+        let r2: GR | undefined;
+        let address: number | string | undefined;
+        let comment: string | undefined;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
@@ -133,6 +133,7 @@ export class Lexer {
         if (gr == "GR5") return GR.GR5;
         if (gr == "GR6") return GR.GR6;
         if (gr == "GR7") return GR.GR7;
+        else throw new Error("Unknwon GR");
     };
 
     private static toAddress(str: string): string | number | undefined {
@@ -166,15 +167,21 @@ export class Lexer {
 
 
 export class LexerResult {
-    private _label: string;
-    private _instruction: string;
-    private _r1: GR;
-    private _r2: GR;
-    private _address: number | string;
-    private _comment;
+    private _label: string | undefined;
+    private _instruction: string | undefined;
+    private _r1: GR | undefined;
+    private _r2: GR | undefined;
+    private _address: number | string | undefined;
+    private _comment: string | undefined;
     private _isCommentLine: boolean;
 
-    constructor(label: string, instruction: string, r1: GR, r2: GR, address: number | string, comment?: string) {
+    constructor(
+        label: string | undefined,
+        instruction: string | undefined, 
+        r1: GR | undefined, 
+        r2: GR | undefined, 
+        address: number | string | undefined, 
+        comment: string | undefined) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;

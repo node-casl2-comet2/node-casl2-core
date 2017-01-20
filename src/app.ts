@@ -24,12 +24,6 @@ for (var i = 0; i < splits.length; i++) {
     console.log(line);
 }
 
-let adda1 = Instructions.adda(null, GR.GR1, GR.GR2);
-let adda2 = Instructions.adda(null, GR.GR1, 3, GR.GR2);
-
-console.log(adda1.toString());
-console.log(adda2.toString());
-
 if (errors.length != 0) {
     // コンパイルエラーありの場合
     errors.forEach(error => console.log(error.message));

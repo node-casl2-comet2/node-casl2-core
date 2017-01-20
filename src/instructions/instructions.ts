@@ -7,52 +7,6 @@ import { CompileError } from '../errors/compileError';
 import { ArgumentError } from '../errors/argumentError';
 
 export class Instructions {
-    /**
-     * START命令
-     */
-    public static start(label?: string) {
-        return new InstructionBase("START", null, label);
-    }
-
-    /**
-     * RET命令
-     */
-    public static ret(label?: string) {
-        return new InstructionBase("RET", 0x81, label);
-    }
-
-    /**
-     * END命令
-     */
-    public static end() {
-        return new InstructionBase("END", null);
-    }
-
-    /**
-     * LAD命令
-     */
-    public static lad(label: string, r: GR, adr: number | string, x?: GR) {
-        return new InstructionBase("LAD", 0x12, label, r, x, adr);
-    }
-
-    /**
-     * ADDA命令
-     */
-    public static adda(label: string, r1: GR, r2: GR): InstructionBase;
-    /**
-     * ADDA命令
-     */
-    public static adda(label: string, r1: GR, adr: number | string, x?: GR): InstructionBase;
-    public static adda(label: string, x1: any, x2: any, x3?: any): InstructionBase {
-        if (typeof x2 == "GR") {
-            // アドレス無し
-            return new InstructionBase("ADDA", 0x24, label, x1, x2).confirmed();
-        } else {
-            // アドレス有り
-            return new InstructionBase("ADDA", 0x20, label, x1, x3, x2);
-        }
-    }
-
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
         // TODO: IN | OUT の分類を決める
         // 引数を取らない命令(5個)
@@ -79,7 +33,7 @@ export class Instructions {
         // 定数列を引数に取る命令(1個)
         let constArgsInstRegex = /\b(DC)\b/;
 
-        let inst = result.instruction;
+        let inst = result.instruction!;
         if (inst.match(noArgsInstRegex)) {
             // 引数を取らない            
             // 引数が1つもないことを確かめる
@@ -101,7 +55,7 @@ export class Instructions {
             // アドレスがあること
             if (!result.address || result.r1) return new ArgumentError(lineNumber);
 
-            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, null, result.r2, result.address);
+            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, result.r2, result.address);
             return instBase;
         }
         else if (inst.match(radrxInstRegex)) {
@@ -130,7 +84,7 @@ export class Instructions {
             // [adr]
             if (result.r1 || result.r2) return new ArgumentError(lineNumber);
 
-            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, null, null, result.address);
+            let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
             return instBase;
         } else if (inst.match(numberArgsInstRegex)) {
             throw new Error("not implemented");
