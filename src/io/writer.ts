@@ -11,7 +11,10 @@ export class Writer {
 
     public static createBinaryBuffer(numbers: Array<number>): Buffer {
         let byteLength = numbers
-            .map(n => n.toString(16).length)
+            .map(n => {
+                let digit = n.toString(16).length;
+                return n == 0 ? 4 : digit;
+            })
             .reduce((prev, current, _, __) => prev + current) / 2;
 
         let arrayBuffer = new ArrayBuffer(byteLength);
@@ -29,7 +32,11 @@ export class Writer {
             } else if (digit == 4) {
                 view.setUint16(byteOffset, n, false);
                 byteOffset += 2;
-            } else throw new Error("invalid hex code length.");
+            } else if (digit == 1) {
+                view.setUint16(byteOffset, 0, false);
+                byteOffset += 2;
+            }
+            else throw new Error("invalid hex code length.");
         }
 
         return new Buffer(arrayBuffer);

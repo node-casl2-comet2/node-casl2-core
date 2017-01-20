@@ -27,9 +27,6 @@ export class Instructions {
         // [adr]を引数に取る命令(1個)
         let adrInstRegex = /\b(START)\b/;
 
-        // 数値を引数に取る命令(1個)
-        let numberArgsInstRegex = /\b(DS)\b/;
-
         // 定数列を引数に取る命令(1個)
         let constArgsInstRegex = /\b(DC)\b/;
 
@@ -86,13 +83,32 @@ export class Instructions {
 
             let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
             return instBase;
-        } else if (inst.match(numberArgsInstRegex)) {
-            throw new Error("not implemented");
         } else if (inst.match(constArgsInstRegex)) {
             throw new Error("not implemented");
         }
 
         throw new Error("Unknown instruction");
+    }
+
+    public static createDS(result: LexerResult, lineNumber: number):　InstructionBase | Array<InstructionBase> {
+        if (result.instruction != 'DS') throw new Error();
+
+        let wordCount = result.wordCount;
+        if (wordCount == 0) {
+            // 語数が0の場合領域は確保しないがラベルは有効である
+            // OLBL命令: ラベル名だけ有効でバイト長は0
+            // TODO: OLBLは勝手に追加した命令なので別クラスにしたほうがいいかも
+            let instBase = new InstructionBase('OLBL', undefined, result.label);
+            return instBase;
+        } else {
+            // 語数と同じ数のNOP命令に置き換える
+            let nops = new Array<InstructionBase>();
+            nops.push(new InstructionBase('NOP', Instructions.InstMap.get('NOP'), result.label));
+            for (var i = 1; i < wordCount; i++) {
+                nops.push(new InstructionBase('NOP', Instructions.InstMap.get('NOP')));
+            }
+            return nops;
+        }
     }
 
     private static InstMap = new Map<String, number>([

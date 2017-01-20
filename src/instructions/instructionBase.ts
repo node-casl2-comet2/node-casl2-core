@@ -40,7 +40,7 @@ export class InstructionBase {
             this._isConfirmed = true;
         }
 
-        this._byteLength = code ? InstructionBase.byteLengthMap.get(code)! : 0;
+        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code)! : 0;
     }
 
     public get instructionName() {
@@ -96,6 +96,10 @@ export class InstructionBase {
 
     public get label() {
         return this._label;
+    }
+
+    public get address(){
+        return this._address;
     }
 
     /**

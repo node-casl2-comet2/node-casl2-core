@@ -1,0 +1,9 @@
+CASL    START
+        LAD     GR1, 2
+        ST      GR1, L1
+        LD      GR2, L2     
+        ADDA    GR1, GR2
+        RET
+L1      DS      0
+L2      DS      1
+        END

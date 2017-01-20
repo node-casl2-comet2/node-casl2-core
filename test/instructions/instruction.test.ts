@@ -1,7 +1,9 @@
 import { Lexer, LexerResult } from '../../src/casl2/lexer';
+import { InstructionBase } from '../../src/instructions/instructionBase';
 import { Instructions } from '../../src/instructions/instructions';
 import { CompileError } from '../../src/errors/compileError';
 import { LabelMap } from '../../src/data/labelMap';
+import { Casl2 } from '../../src/casl2';
 import * as assert from 'assert';
 
 suite("Instruction test", () => {
@@ -42,7 +44,51 @@ suite("Instruction test", () => {
         assert.equal(instruction.toHex(), -1);
     });
 
-    // TODO: DS命令
+    // DS命令
+    test("DS test", () => {
+        // ラベル無し
+        let line = "DS  3";
+        let ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        assert(ds.length == 3);
+        assert(ds[0].instructionName == 'NOP' && ds[0].label == undefined);
+        assert(ds[1].instructionName == 'NOP' && ds[1].label == undefined);
+        assert(ds[2].instructionName == 'NOP' && ds[2].label == undefined);
+
+        // ラベル有り
+        line = "CONST DS 3";
+        ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        assert(ds.length == 3);
+        assert(ds[0].instructionName == 'NOP' && ds[0].label == 'CONST');
+        assert(ds[1].instructionName == 'NOP' && ds[1].label == undefined);
+        assert(ds[2].instructionName == 'NOP' && ds[2].label == undefined);
+
+        // 語数0(ラベル無し)
+        // 領域は確保されず何もしないのと同じ
+        line = "DS 0";
+        let olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        assert(olbl.toHex() == -1);     
+
+        // 語数0(ラベル有り)
+        // 語数0でもラベルは有効である
+        let lines = [
+            "CASL    START",
+            "        LAD     GR1, 2",
+            "        ST      GR1, L1",  // L1とL2は同じ番地を指すはず
+            "        LD      GR2, L2",
+            "        ADDA    GR1, GR2",
+            "        RET",
+            "L1      DS      0",
+            "L2      DS      1",
+            "        END"
+        ];
+
+        let casl2 = new Casl2();
+        let result = casl2.compile(lines);
+
+        let st = result.instructions[2];
+        let ld = result.instructions[3];
+        assert(st.address as number == ld.address as number);
+    });
 
     // TODO: DC命令
 

@@ -5,7 +5,7 @@ import { Writer } from '../src/io/writer';
 import { Casl2 } from './casl2';
 
 // .casファイルを読み込む
-let buf = Reader.read('./test/testdata/src02.cas');
+let buf = Reader.read('./test/testdata/src03.cas');
 
 
 // 末尾の改行を取り除いて一行ずつに分ける

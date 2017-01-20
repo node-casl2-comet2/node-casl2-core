@@ -29,12 +29,22 @@ export class Casl2 {
                 if (result.isCommentLine) {
                     // コメント行なので無視する
                 } else {
-                    let inst = Instructions.create(result, 1);
-                    if (inst instanceof InstructionBase) {
-                        instructions.push(inst);
+                    if (result.instruction == 'DS') {
+                        let ds = Instructions.createDS(result, lineNumber);
+                        if (ds instanceof InstructionBase) {
+                            instructions.push(ds);
+                        } else {
+                            ds.forEach(nop => instructions.push(nop));
+                        }
                     } else {
-                        // コンパイルエラー
-                        errors.push(inst);
+                        let inst = Instructions.create(result, lineNumber);
+                        if (inst instanceof InstructionBase) {
+                            instructions.push(inst);
+                        }
+                        else {
+                            // コンパイルエラー
+                            errors.push(inst);
+                        }
                     }
                 }
             }

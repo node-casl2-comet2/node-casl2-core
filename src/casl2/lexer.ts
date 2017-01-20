@@ -11,6 +11,7 @@ export class Lexer {
         let r2: GR | undefined;
         let address: number | string | undefined;
         let comment: string | undefined;
+        let wordCount: number | undefined;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
@@ -48,12 +49,17 @@ export class Lexer {
             index++;
         }
 
+        if(instruction == 'DS'){
+            console.log('hello');
+            
+        }
         // 引数のパターンは5種類
         // 0. なし
         // 1. GR
         // 2. GR, GR
         // 3. GR, アドレス, GR
         // 4. アドレス, GR
+        // 5. 語数(10進定数)
 
         // 引数の数を求める
         let argCount = split.length - index;
@@ -89,11 +95,18 @@ export class Lexer {
             } else {
                 // 4. アドレス， GRのパターン
                 let adr = Lexer.toAddress(arg1);
-                if (!adr) return new ArgumentError(lineNumber);
+                if (adr == undefined) return new ArgumentError(lineNumber);
 
                 address = adr;
 
-                if (argCount == 2) {
+                if (argCount == 1) {
+                    if (instruction == 'DS') {
+                        // 5. 語数(10進定数)パターン
+                        if (typeof adr != 'number' || arg1.startsWith('#')) return new ArgumentError(lineNumber);
+                        wordCount = adr;
+                    }
+                }
+                else {
                     let arg2 = split[index];
                     if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
 
@@ -102,7 +115,7 @@ export class Lexer {
             }
         }
 
-        return new LexerResult(label, instruction, r1, r2, address, comment);
+        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount);
     }
 
     private static isLabel(str: string): boolean {
@@ -113,13 +126,13 @@ export class Lexer {
     }
 
     private static isInstruction(str: string): boolean {
-        let regex = /\bSTART|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP\b/;
+        let regex = /\b(START|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP)\b/;
         let result = str.match(regex);
         return result != null;
     }
 
     private static isGR(str: string): boolean {
-        let regex = /\bGR0|GR1|GR2|GR3|GR4|GR5|GR6|GR7\b/;
+        let regex = /\b(GR0|GR1|GR2|GR3|GR4|GR5|GR6|GR7)\b/;
         let result = str.match(regex);
         return result != null;
     }
@@ -174,20 +187,23 @@ export class LexerResult {
     private _address: number | string | undefined;
     private _comment: string | undefined;
     private _isCommentLine: boolean;
+    private _wordCount: number | undefined;
 
     constructor(
         label: string | undefined,
-        instruction: string | undefined, 
-        r1: GR | undefined, 
-        r2: GR | undefined, 
-        address: number | string | undefined, 
-        comment: string | undefined) {
+        instruction: string | undefined,
+        r1: GR | undefined,
+        r2: GR | undefined,
+        address: number | string | undefined,
+        comment: string | undefined,
+        wordCount?: number) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;
         this._r2 = r2;
         this._address = address;
         this._comment = comment;
+        this._wordCount = wordCount;
         this._isCommentLine = label == undefined &&
             instruction == undefined &&
             r1 == undefined &&
@@ -214,6 +230,10 @@ export class LexerResult {
 
     public get address() {
         return this._address;
+    }
+
+    public get wordCount() {
+        return this._wordCount;
     }
 
     public get comment() {
