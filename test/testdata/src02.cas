@@ -1,0 +1,6 @@
+CASL    START
+        LAD GR1, 2
+        LAD GR2, L1
+L1      ADDA GR1, GR2 ; GR1 should be 6
+        RET     
+        END

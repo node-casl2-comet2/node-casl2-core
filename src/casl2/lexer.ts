@@ -24,7 +24,7 @@ export class Lexer {
 
         // TODO: コンマの区切りは引数の間にのみで使えるので
         //       ラベルと命令の間には使えないようにする
-        let split = str.replace(/\s+$/, '').split(/\s+|,\s+/);
+        let split = str.trim().split(/\s+|,\s+/);
         let index = 0;
         let first = split[index];
         if (Lexer.isInstruction(first)) {

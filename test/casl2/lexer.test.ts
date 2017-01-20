@@ -103,14 +103,7 @@ suite('Lexer test', () => {
         let result = Lexer.tokenize(line, 3);
         assert(result instanceof CompileError);
     });
-
-    // 先頭の空白はエラー
-    test('tokenize error test: leading whitespace', () => {
-        let line = "    ADDA, GR1, GR2";
-        let result = Lexer.tokenize(line, 3);
-        assert(result instanceof CompileError);
-    });
-
+    
     // 不明な命令はエラー
     test('tokenize error test: invalid instruction', () => {
         // この場合はラベル名と解釈される

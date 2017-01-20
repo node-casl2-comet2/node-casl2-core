@@ -12,6 +12,10 @@ export class LabelMap {
         }
     }
 
+    public has(key: string): boolean{
+        return this._map.has(key);
+    }
+
     public add(key: string, address: number) {
         this._map.set(key, address);
     }
