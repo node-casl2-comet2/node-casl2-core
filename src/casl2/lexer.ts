@@ -12,6 +12,7 @@ export class Lexer {
         let address: number | string | undefined;
         let comment: string | undefined;
         let wordCount: number | undefined;
+        let consts: Array<number | string> | undefined;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
@@ -49,73 +50,85 @@ export class Lexer {
             index++;
         }
 
-        if(instruction == 'DS'){
-            console.log('hello');
-            
-        }
         // 引数のパターンは5種類
         // 0. なし
         // 1. GR
         // 2. GR, GR
         // 3. GR, アドレス, GR
         // 4. アドレス, GR
-        // 5. 語数(10進定数)
+        // 5. 語数(10進定数)   (DSのみ)
+        // 6. 定数[, 定数] ... (DCのみ)
 
         // 引数の数を求める
         let argCount = split.length - index;
 
-        if (argCount > 0) {
-            // 命令の後の1つ目のトークンはレジスタまたはアドレス
-            let arg1 = split[index++];
-            if (Lexer.isGR(arg1)) {
-                r1 = Lexer.toGR(arg1);
+        if (instruction == 'DC') {
+            // DC命令のオペランドの数は1以上である
+            if (argCount == 0) return new ArgumentError(lineNumber);
 
-                if (argCount > 1) {
-                    let arg2 = split[index++];
-                    // GRまたはアドレス
-                    if (Lexer.isGR(arg2)) {
-                        // 2. GR, GRのパターン
-                        r2 = Lexer.toGR(arg2);
-                    } else {
-                        // 3. GR, アドレス, GRのパターン
-                        let adr = Lexer.toAddress(arg2);
-                        if (!adr) return new ArgumentError(lineNumber);
+            for (var i = 0; i < argCount; i++) {
+                let arg = split[index + i];
+                // 定数か?
+                let c = Lexer.toConst(arg);
+                if (c == undefined) return new ArgumentError(lineNumber);
+                if (consts == undefined) {
+                    consts = new Array();
+                }
+                consts.push(c);
+            }
+        } else {
+            if (argCount > 0) {
+                // 命令の後の1つ目のトークンはレジスタまたはアドレス
+                let arg1 = split[index++];
+                if (Lexer.isGR(arg1)) {
+                    r1 = Lexer.toGR(arg1);
 
-                        address = adr;
+                    if (argCount > 1) {
+                        let arg2 = split[index++];
+                        // GRまたはアドレス
+                        if (Lexer.isGR(arg2)) {
+                            // 2. GR, GRのパターン
+                            r2 = Lexer.toGR(arg2);
+                        } else {
+                            // 3. GR, アドレス, GRのパターン
+                            let adr = Lexer.toAddress(arg2);
+                            if (!adr) return new ArgumentError(lineNumber);
 
-                        // arg3は存在しないかもしれない
-                        if (argCount == 3) {
-                            let arg3 = split[index];
-                            if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
+                            address = adr;
 
-                            r2 = Lexer.toGR(arg3);
+                            // arg3は存在しないかもしれない
+                            if (argCount == 3) {
+                                let arg3 = split[index];
+                                if (!Lexer.isGR(arg3)) return new ArgumentError(lineNumber);
+
+                                r2 = Lexer.toGR(arg3);
+                            }
                         }
                     }
-                }
-            } else {
-                // 4. アドレス， GRのパターン
-                let adr = Lexer.toAddress(arg1);
-                if (adr == undefined) return new ArgumentError(lineNumber);
+                } else {
+                    // 4. アドレス， GRのパターン
+                    let adr = Lexer.toAddress(arg1);
+                    if (adr == undefined) return new ArgumentError(lineNumber);
 
-                address = adr;
+                    address = adr;
 
-                if (argCount == 1) {
-                    if (instruction == 'DS') {
-                        // 5. 語数(10進定数)パターン
-                        if (typeof adr != 'number' || arg1.startsWith('#')) return new ArgumentError(lineNumber);
-                        wordCount = adr;
+                    if (argCount == 1) {
+                        if (instruction == 'DS') {
+                            // 5. 語数(10進定数)パターン
+                            if (typeof adr != 'number' || arg1.startsWith('#')) return new ArgumentError(lineNumber);
+                            wordCount = adr;
+                        }
                     }
-                }
-                else {
-                    let arg2 = split[index];
-                    if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
+                    else {
+                        let arg2 = split[index];
+                        if (!Lexer.isGR(arg2)) return new ArgumentError(lineNumber);
 
-                    r2 = Lexer.toGR(arg2);
+                        r2 = Lexer.toGR(arg2);
+                    }
                 }
             }
         }
-
-        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount);
+        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount, consts);
     }
 
     private static isLabel(str: string): boolean {
@@ -148,6 +161,27 @@ export class Lexer {
         if (gr == "GR7") return GR.GR7;
         else throw new Error("Unknwon GR");
     };
+
+    private static toConst(str: string): number | string | undefined {
+        // 10進定数か?
+        let decimal = parseInt(str, 10);
+        if (decimal) return decimal;
+
+        // 16進定数か?
+        if (str.charAt(0) == '#') {
+            let hex = parseInt(str.slice(1), 16);
+            if (hex) return hex;
+        }
+
+        // 文字列か?
+        if (str.length > 2 &&
+            str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
+
+        // ラベルか?
+        if (Lexer.isLabel(str)) return str;
+
+        return undefined;
+    }
 
     private static toAddress(str: string): string | number | undefined {
         // アドレスはラベル名で指定されるかも
@@ -188,6 +222,7 @@ export class LexerResult {
     private _comment: string | undefined;
     private _isCommentLine: boolean;
     private _wordCount: number | undefined;
+    private _consts: Array<number | string> | undefined;
 
     constructor(
         label: string | undefined,
@@ -196,7 +231,8 @@ export class LexerResult {
         r2: GR | undefined,
         address: number | string | undefined,
         comment: string | undefined,
-        wordCount?: number) {
+        wordCount?: number,
+        consts?: Array<number | string>) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;
@@ -204,6 +240,8 @@ export class LexerResult {
         this._address = address;
         this._comment = comment;
         this._wordCount = wordCount;
+        this._consts = consts;
+
         this._isCommentLine = label == undefined &&
             instruction == undefined &&
             r1 == undefined &&
@@ -243,6 +281,11 @@ export class LexerResult {
     public get isCommentLine() {
         return this._isCommentLine;
     }
+
+    public get consts() {
+        return this._consts;
+    }
+
     public toString() {
         return [
             "Label:", this.label,

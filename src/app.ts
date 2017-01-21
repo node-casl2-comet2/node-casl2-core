@@ -5,7 +5,7 @@ import { Writer } from '../src/io/writer';
 import { Casl2 } from './casl2';
 
 // .casファイルを読み込む
-let buf = Reader.read('./test/testdata/src03.cas');
+let buf = Reader.read('./test/testdata/src04.cas');
 
 
 // 末尾の改行を取り除いて一行ずつに分ける
@@ -15,7 +15,6 @@ let result = casl2.compile(lines);
 
 if (result.success) {
     // コンパイル成功の場合
-    result.instructions.forEach(inst => console.log(inst.toHex()));
     Writer.binaryWrite("temp.com", result.instructions.map(x => x.toHex()).filter(x => x != -1));
 } else {
     // コンパイルエラーありの場合

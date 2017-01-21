@@ -1,6 +1,7 @@
 'use strict';
 
 import { InstructionBase } from './instructionBase';
+import { MDC } from './mdc';
 import { GR } from '../comet2/gr';
 import { LexerResult } from '../casl2/lexer';
 import { CompileError } from '../errors/compileError';
@@ -90,7 +91,7 @@ export class Instructions {
         throw new Error("Unknown instruction");
     }
 
-    public static createDS(result: LexerResult, lineNumber: number):　InstructionBase | Array<InstructionBase> {
+    public static createDS(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
         if (result.instruction != 'DS') throw new Error();
 
         let wordCount = result.wordCount;
@@ -108,6 +109,38 @@ export class Instructions {
                 nops.push(new InstructionBase('NOP', Instructions.InstMap.get('NOP')));
             }
             return nops;
+        }
+    }
+
+    public static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
+        if (result.instruction != 'DC') throw new Error();
+
+        if (result.consts == undefined) throw new Error();
+
+        if (result.consts.length == 1) {
+            let constant = result.consts[0];
+            let mdc = new MDC(result.label, constant);
+            return mdc;
+        } else {
+            let mdcs = new Array<InstructionBase>();
+            // DC命令のオペランドが2つ以上ならそれぞれの定数についてDC命令に分解する
+            // 例:
+            // CONST DC   3, #0005 =>  CONST MDC   3
+            //                               MDC   #0005
+            let dcs = new Array<LexerResult>();
+            let lexResult = new LexerResult(result.label, 'DC', undefined, undefined, undefined, result.comment, undefined, [result.consts[0]]);
+            dcs.push(lexResult);
+            for (var i = 1; i < result.consts.length; i++) {
+                let c = result.consts[i];
+                let lexResult = new LexerResult(result.label, 'DC', undefined, undefined, undefined, result.comment, undefined, [c]);
+                dcs.push(lexResult);
+            }
+            dcs.forEach(dc => {
+                let mdc = Instructions.createDC(dc, lineNumber) as InstructionBase;
+                mdcs.push(mdc);
+            });
+
+            return mdcs;
         }
     }
 

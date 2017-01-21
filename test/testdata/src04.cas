@@ -1,0 +1,11 @@
+CASL    START
+        LAD     GR1, 2
+L1      ST      GR1, L1
+        LD      GR2, L1     
+        ADDA    GR1, GR2
+        RET
+        DC      3
+        DC      #00AB
+        DC      'A'
+        DC      L1
+        END

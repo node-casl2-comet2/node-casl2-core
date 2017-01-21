@@ -77,7 +77,7 @@ export class InstructionBase {
         let gr = ((this._r1 || 0) << 0x04) | (this._r2 || 0);
         hex = hex | gr;
 
-        if (this._address) {
+        if (this._address != undefined) {
             // 16進数で4桁左にずらす
             // TODO: シフト演算を使うと32ビット扱いになってオーバーフローしてしまう
             //       シフト演算でうまくやる方法はないか?
@@ -90,7 +90,10 @@ export class InstructionBase {
     public resolveAddress(labelMap: LabelMap) {
         if (this._isConfirmed) return;
 
-        this._address = labelMap.get(this._address as string);
+        let resolvedAddress = labelMap.get(this._address as string);
+        // TODO: コンパイルエラーにする
+        if(resolvedAddress == undefined) throw new Error('undeclared label: ' + this._address as string);
+        this._address = resolvedAddress;
         this._isConfirmed = true;
     }
 

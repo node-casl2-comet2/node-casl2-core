@@ -13,7 +13,7 @@ export class Writer {
         let byteLength = numbers
             .map(n => {
                 let digit = n.toString(16).length;
-                return n == 0 ? 4 : digit;
+                return digit <= 4 ? 4 : digit;
             })
             .reduce((prev, current, _, __) => prev + current) / 2;
 
@@ -29,11 +29,8 @@ export class Writer {
                 // 第3引数にfalseを指定するとビッグエンディアンになる
                 view.setUint32(byteOffset, n, false);
                 byteOffset += 4;
-            } else if (digit == 4) {
+            } else if (digit <= 4) {
                 view.setUint16(byteOffset, n, false);
-                byteOffset += 2;
-            } else if (digit == 1) {
-                view.setUint16(byteOffset, 0, false);
                 byteOffset += 2;
             }
             else throw new Error("invalid hex code length.");
