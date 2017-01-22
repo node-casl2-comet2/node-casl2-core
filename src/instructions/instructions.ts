@@ -123,22 +123,18 @@ export class Instructions {
             return mdc;
         } else {
             let mdcs = new Array<InstructionBase>();
-            // DC命令のオペランドが2つ以上ならそれぞれの定数についてDC命令に分解する
+            // DC命令のオペランドが2つ以上ならそれぞれの定数についてMDC命令に分解する
             // 例:
             // CONST DC   3, #0005 =>  CONST MDC   3
             //                               MDC   #0005
-            let dcs = new Array<LexerResult>();
-            let lexResult = new LexerResult(result.label, 'DC', undefined, undefined, undefined, result.comment, undefined, [result.consts[0]]);
-            dcs.push(lexResult);
+            // TODO: 文字列定数の場合，2文字以上ならさらにMDC命令に分割する必要がある
+            let mdc = new MDC(result.label, result.consts[0]);
+            mdcs.push(mdc);
             for (var i = 1; i < result.consts.length; i++) {
                 let c = result.consts[i];
-                let lexResult = new LexerResult(result.label, 'DC', undefined, undefined, undefined, result.comment, undefined, [c]);
-                dcs.push(lexResult);
-            }
-            dcs.forEach(dc => {
-                let mdc = Instructions.createDC(dc, lineNumber) as InstructionBase;
+                let mdc = new MDC(undefined, c);
                 mdcs.push(mdc);
-            });
+            }
 
             return mdcs;
         }

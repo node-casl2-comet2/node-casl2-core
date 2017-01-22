@@ -66,7 +66,7 @@ suite("Instruction test", () => {
         // 領域は確保されず何もしないのと同じ
         line = "DS 0";
         let olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
-        assert(olbl.toHex() == -1);     
+        assert(olbl.toHex() == -1);
 
         // 語数0(ラベル有り)
         // 語数0でもラベルは有効である
@@ -91,6 +91,36 @@ suite("Instruction test", () => {
     });
 
     // TODO: DC命令
+    test("DC test", () => {
+        // 10進定数
+        let line = "DC  3";
+
+        // 16進定数
+        line = "DC #00AB";
+
+        // 文字列定数(1文字)
+        line = "DC 'A";
+
+        // 文字列定数(2文字以上)
+        line = "DC 'ABC"
+
+        // ラベル
+        let lines = [
+            "CASL    START",
+            "        LAD     GR1, 2",
+            "L1      ST      GR1, L1",
+            "        RET",
+            "        DC      L1",
+            "        END"
+        ];
+
+        let casl2 = new Casl2();
+        let result = casl2.compile(lines);
+
+        let st = result.instructions[2];
+        let ld = result.instructions[3];
+        assert(st.address as number == ld.address as number);
+    });
 
     // TODO: IN命令
 
