@@ -90,36 +90,40 @@ suite("Instruction test", () => {
         assert(st.address as number == ld.address as number);
     });
 
-    // TODO: DC命令
+    // DC命令
     test("DC test", () => {
         // 10進定数
         let line = "DC  3";
+        let dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        assert.equal(dc.toHex(), 0x0003);
 
         // 16進定数
         line = "DC #00AB";
+        dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        assert.equal(dc.toHex(), 0x00AB);
 
         // 文字列定数(1文字)
-        line = "DC 'A";
+        line = "DC 'A'";
+        let mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        assert(mdcs.length == 1);
+        // 'A'のアスキーコードは0x41である
+        assert.equal(mdcs[0].toHex(), 0x0041);
 
         // 文字列定数(2文字以上)
-        line = "DC 'ABC"
+        line = "DC 'ABC'"
+        mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        assert(mdcs.length == 3);
+        assert.equal(mdcs[0].toHex(), 0x0041);
+        assert.equal(mdcs[1].toHex(), 0x0042);
+        assert.equal(mdcs[2].toHex(), 0x0043);
 
         // ラベル
-        let lines = [
-            "CASL    START",
-            "        LAD     GR1, 2",
-            "L1      ST      GR1, L1",
-            "        RET",
-            "        DC      L1",
-            "        END"
-        ];
-
-        let casl2 = new Casl2();
-        let result = casl2.compile(lines);
-
-        let st = result.instructions[2];
-        let ld = result.instructions[3];
-        assert(st.address as number == ld.address as number);
+        line = "DC L0";
+        dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        // アドレス解決をする
+        let map = new LabelMap([["L0", 0x0002]]);
+        dc.resolveAddress(map);
+        assert.equal(dc.toHex(), 0x0002);
     });
 
     // TODO: IN命令

@@ -68,7 +68,7 @@ export class Instructions {
             // r, adr[, x]
             if (result.address) {
                 // アドレス有り
-                if (!result.r1) return new ArgumentError(lineNumber);
+                if (result.r1 == undefined) return new ArgumentError(lineNumber);
                 let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
                 return instBase;
             } else {
@@ -117,23 +117,52 @@ export class Instructions {
 
         if (result.consts == undefined) throw new Error();
 
+        let isStringLiteral = (c: string | number) => typeof c == 'string' && c.startsWith('\'');
+        let splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string) => {
+            // シングルクォーテーションで囲まれた部分の文字列を取り出す
+            let str = strLiteral.slice(1, strLiteral.length - 1);
+            let ch = strLiteral.charAt(1);
+            let mdc = new MDC(label, undefined, ch);
+            mdcs.push(mdc);
+            for (var i = 1; i < str.length; i++) {
+                let ch = strLiteral.charAt(i + 1);
+                let mdc = new MDC(undefined, undefined, ch);
+                mdcs.push(mdc);
+            }
+        }
+
         if (result.consts.length == 1) {
-            let constant = result.consts[0];
-            let mdc = new MDC(result.label, constant);
-            return mdc;
+            let c = result.consts[0];
+            if (isStringLiteral(c)) {
+                let mdcs = new Array<MDC>();
+                splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                return mdcs;
+            } else {
+                let mdc = new MDC(result.label, c);
+                return mdc;
+            }
         } else {
-            let mdcs = new Array<InstructionBase>();
+            let mdcs = new Array<MDC>();
             // DC命令のオペランドが2つ以上ならそれぞれの定数についてMDC命令に分解する
             // 例:
             // CONST DC   3, #0005 =>  CONST MDC   3
             //                               MDC   #0005
-            // TODO: 文字列定数の場合，2文字以上ならさらにMDC命令に分割する必要がある
-            let mdc = new MDC(result.label, result.consts[0]);
-            mdcs.push(mdc);
+            let c = result.consts[0];
+            if (isStringLiteral(c)) {
+                splitStringLiteralToMdcs(c as string, mdcs, result.label);
+            } else {
+                let mdc = new MDC(result.label, c);
+                mdcs.push(mdc);
+            }
+
             for (var i = 1; i < result.consts.length; i++) {
                 let c = result.consts[i];
-                let mdc = new MDC(undefined, c);
-                mdcs.push(mdc);
+                if (isStringLiteral(c)) {
+                    splitStringLiteralToMdcs(c as string, mdcs);
+                } else {
+                    let mdc = new MDC(undefined, c);
+                    mdcs.push(mdc);
+                }
             }
 
             return mdcs;

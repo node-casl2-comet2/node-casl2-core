@@ -3,10 +3,13 @@
 import { Reader } from './io/reader';
 import { Writer } from '../src/io/writer';
 import { Casl2 } from './casl2';
+import { Instructions } from './instructions/instructions';
+import { Lexer, LexerResult } from './casl2/lexer';
+import { InstructionBase } from './instructions/instructionBase';
+
 
 // .casファイルを読み込む
 let buf = Reader.read('./test/testdata/src04.cas');
-
 
 // 末尾の改行を取り除いて一行ずつに分ける
 let lines = buf.toString().replace(/(\r\n|\r|\n)+$/, "").split(/\r\n|\r|\n/);

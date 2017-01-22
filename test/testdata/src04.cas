@@ -1,12 +1,17 @@
 CASL    START
         LAD     GR1, 2
-L1      ST      GR1, L1
-        LD      GR2, L1     
-        ADDA    GR1, GR2
+L0      LAD     GR1, 2
+        LD      GR0, L1     
+        LD      GR0, L2
+        LD      GR0, L3
+        LD      GR0, L4
+        LD      GR0, L5
+        LD      GR0, L6
         RET
-;        DC      3
-;        DC      #00AB
-;        DC      'A'
-;        DC      L1
-        DC 3, #00AB, 'A', L1
+L1      DC      3
+L2      DC      #00AB
+L3      DC      'A'
+L4      DC      'BCD'
+L5      DC      L0
+L6      DC      3, #00AB, 'A', 'BCD', L0
         END

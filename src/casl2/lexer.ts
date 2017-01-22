@@ -17,11 +17,13 @@ export class Lexer {
         let str = line;
         let semicolonIndex = line.indexOf(';');
         if (semicolonIndex >= 0) {
-            // コメント行の場合
-            if (semicolonIndex == 0) return new LexerResult(label, instruction, r1, r2, address, str);
 
             comment = line.slice(semicolonIndex);
             str = line.substring(0, semicolonIndex);
+            if (str.match(/^\s*$/)) {
+                // コメント行の場合
+                return new LexerResult(undefined, undefined, undefined, undefined, undefined, comment);
+            }
         }
 
         // TODO: コンマの区切りは引数の間にのみで使えるので
