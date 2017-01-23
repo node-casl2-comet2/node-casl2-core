@@ -2,11 +2,28 @@
 
 import { CompileError } from './compileError';
 
+export class Errors {
+    /**
+     * 文字列定数のエラー
+     */
+    public static stringConstantError(lineNumber: number) {
+        return new ArgumentError(lineNumber, "String constant error.", 0x0000);
+    }
+}
+
 export class ArgumentError extends CompileError {
-    constructor(lineNumber: number) {
+    constructor(lineNumber: number, message?: string, errorCode?: number) {
         // 引数の数が合わないなどのエラー
-        let message = "Argument error.";
-        super(message, lineNumber);
+        if (message) {
+            if (errorCode) {
+                super(message, lineNumber, errorCode);
+            } else {
+                super(message, lineNumber, 0x1000);
+            }
+        } else {
+            // 引数エラーの規定のエラーコードは0x1000
+            super("Argument error.", lineNumber, 0x1000);
+        }
     }
 }
 

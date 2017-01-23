@@ -8,14 +8,18 @@ export class CompileError {
     private _message: string;
     // エラーの行番号
     private _lineNumber: number;
+    // エラーコード
+    private _errorCode: number | undefined;
     // エラーの始まりのインデックス
     private _startIndex: number | undefined;
     // エラーの終わりのインデックス
     private _endIndex: number | undefined;
 
-    constructor(message: string, lineNumber: number, startIndex?: number, endIndex?: number) {
+    // TODO: lineNumberを第一引数にし，messageをoptionalにする
+    constructor(message: string, lineNumber: number, errorCode?: number, startIndex?: number, endIndex?: number) {
         this._message = message;
         this._lineNumber = lineNumber;
+        this._errorCode = errorCode;
         this._startIndex = startIndex;
         this._endIndex = endIndex;
     }
