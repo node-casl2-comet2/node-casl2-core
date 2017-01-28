@@ -65,7 +65,7 @@ export class Casl2 {
 
         // ラベルマップを作る
         let byteOffset = 0;
-        let labelMap = new LabelMap();
+        const labelMap = new LabelMap();
         for (var i = 0; i < instructions.length; i++) {
             let inst = instructions[i];
 
@@ -74,8 +74,13 @@ export class Casl2 {
                     // ラベル名に重複があればコンパイルエラーである
                     errors.push(new CompileError(inst.lineNumber, "Duplicate label."));
                 } else {
-                    // COMET2は1語16ビット(2バイト)なので2で割っている
-                    labelMap.add(inst.label, byteOffset / 2);
+                    if (inst.instructionName === 'START' && inst.address != undefined) {
+                        // START命令でadr指定がある場合はadrから開始することになる
+                        labelMap.bindAdd(inst.label, inst.address as string);
+                    } else {
+                        // COMET2は1語16ビット(2バイト)なので2で割っている
+                        labelMap.add(inst.label, byteOffset / 2);
+                    }
                 }
             }
 
@@ -85,6 +90,6 @@ export class Casl2 {
         // アドレス解決する
         instructions.forEach(inst => inst.resolveAddress(labelMap));
 
-        return new CompileResult(instructions, errors);
+        return new CompileResult(instructions, errors, labelMap);
     }
 }

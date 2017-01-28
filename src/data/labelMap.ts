@@ -4,16 +4,23 @@
  */
 export class LabelMap {
     private _map: Map<string, number>;
+    private _bindMap: Map<string, string>;
+
     constructor(entries?: [string, number][]) {
         if (entries) {
             this._map = new Map(entries);
         } else {
             this._map = new Map();
         }
+
+        this._bindMap = new Map();
     }
 
-    public has(key: string): boolean{
-        return this._map.has(key);
+    public has(key: string): boolean {
+        if (this._bindMap.has(key)) return true;
+        if (this._map.has(key)) return true;
+
+        return false;
     }
 
     public add(key: string, address: number) {
@@ -21,6 +28,15 @@ export class LabelMap {
     }
 
     public get(key: string) {
-        return this._map.get(key);
+        const k = this._bindMap.has(key) ? this._bindMap.get(key) as string : key;
+        return this._map.get(k);
+    }
+
+    /**
+     * keyで問い合わせられたら代わりにbindToで問い合わせる
+     * START命令用
+     */
+    public bindAdd(key: string, bindTo: string) {
+        this._bindMap.set(key, bindTo);
     }
 }

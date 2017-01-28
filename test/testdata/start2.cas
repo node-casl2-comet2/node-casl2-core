@@ -1,0 +1,7 @@
+; START命令 adr指定なし
+CASL    START BEGIN
+        LAD GR1, 2
+BEGIN   LAD GR2, 3
+        ADDA GR1, GR2
+        RET
+        END
