@@ -129,7 +129,14 @@ suite("Instruction test", () => {
 
     // TODO: OUT命令
 
-    // TODO: RPUSH命令
+    // RPUSH命令
+    test('RPUSH test', () => {
+        const line = 'RPUSH';
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0xA000);
+    })
 
     // TODO: RPOP命令
 

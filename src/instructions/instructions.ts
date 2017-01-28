@@ -214,5 +214,6 @@ export class Instructions {
         ["RET", 0x81],
         ["SVC", 0xF0],
         ["NOP", 0x00],
+        ["RPUSH", 0xA0],
     ]);
 }
