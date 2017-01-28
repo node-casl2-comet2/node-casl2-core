@@ -2,6 +2,7 @@
 import { GR } from '../comet2/gr';
 import { CompileError } from '../errors/compileError';
 import { InvalidInstructionError, InvalidLabelError, ArgumentError } from '../errors/errors';
+import { LexerResult } from './lexerResult';
 
 export class Lexer {
     public static tokenize(line: string, lineNumber: number): LexerResult | CompileError {
@@ -13,7 +14,7 @@ export class Lexer {
         let comment: string | undefined;
         let wordCount: number | undefined;
         let consts: Array<number | string> | undefined;
-        let outLengthAddress: number | string | undefined;
+        let lengthAddress: number | string | undefined;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
@@ -79,6 +80,18 @@ export class Lexer {
                 }
                 consts.push(c);
             }
+        }
+        else if(instruction == 'IN'){
+            // IN    入力領域, 入力文字長領域
+
+            // IN命令の引数の数は2である
+            if(argCount != 2) return new ArgumentError(lineNumber);
+
+            const inAddress = Lexer.toAddress(split[index]);
+            const inLengthAddress = Lexer.toAddress(split[index + 1]);
+
+            address = inAddress;
+            lengthAddress = inLengthAddress;
         } 
         else if(instruction == 'OUT'){
             // OUT   出力領域, 出力文字長さ領域
@@ -90,7 +103,7 @@ export class Lexer {
             const outLengthAdr = Lexer.toAddress(split[index + 1]);
             
             address = outAddress;
-            outLengthAddress = outLengthAdr;
+            lengthAddress = outLengthAdr;
         }
         else {
             if (argCount > 0) {
@@ -144,7 +157,7 @@ export class Lexer {
                 }
             }
         }
-        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount, consts, outLengthAddress);
+        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount, consts, lengthAddress);
     }
 
     private static isLabel(str: string): boolean {
@@ -225,97 +238,5 @@ export class Lexer {
         } else {
             return address;
         }
-    }
-}
-
-
-export class LexerResult {
-    private _label: string | undefined;
-    private _instruction: string | undefined;
-    private _r1: GR | undefined;
-    private _r2: GR | undefined;
-    private _address: number | string | undefined;
-    private _comment: string | undefined;
-    private _isCommentLine: boolean;
-    private _wordCount: number | undefined;
-    private _consts: Array<number | string> | undefined;
-    private _outLengthAddress:number | string | undefined;
-
-    constructor(
-        label: string | undefined,
-        instruction: string | undefined,
-        r1: GR | undefined,
-        r2: GR | undefined,
-        address: number | string | undefined,
-        comment: string | undefined,
-        wordCount?: number,
-        consts?: Array<number | string>,
-        outLengthAddress? : number | string) {
-        this._label = label;
-        this._instruction = instruction;
-        this._r1 = r1;
-        this._r2 = r2;
-        this._address = address;
-        this._comment = comment;
-        this._wordCount = wordCount;
-        this._consts = consts;
-        this._outLengthAddress = outLengthAddress;
-
-        this._isCommentLine = label == undefined &&
-            instruction == undefined &&
-            r1 == undefined &&
-            r2 == undefined &&
-            address == undefined &&
-            comment != undefined;
-    }
-
-    public get label() {
-        return this._label;
-    }
-
-    public get instruction() {
-        return this._instruction;
-    }
-
-    public get r1() {
-        return this._r1;
-    }
-
-    public get r2() {
-        return this._r2;
-    }
-
-    public get address() {
-        return this._address;
-    }
-
-    public get wordCount() {
-        return this._wordCount;
-    }
-
-    public get comment() {
-        return this._comment;
-    }
-
-    public get isCommentLine() {
-        return this._isCommentLine;
-    }
-
-    public get consts() {
-        return this._consts;
-    }
-
-    public get outLengthAddress(){
-        return this._outLengthAddress;
-    }
-
-    public toString() {
-        return [
-            "Label:", this.label,
-            "Instruction:", this.instruction,
-            "r1:", this.r1,
-            "r2:", this.r2,
-            "Address:", this.address,
-            "Comment:", this._comment].join(" ");
     }
 }

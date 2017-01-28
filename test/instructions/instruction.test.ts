@@ -1,4 +1,5 @@
-import { Lexer, LexerResult } from '../../src/casl2/lexer';
+import { Lexer } from '../../src/casl2/lexer';
+import { LexerResult } from '../../src/casl2/lexerResult';
 import { InstructionBase } from '../../src/instructions/instructionBase';
 import { Instructions } from '../../src/instructions/instructions';
 import { CompileError } from '../../src/errors/compileError';

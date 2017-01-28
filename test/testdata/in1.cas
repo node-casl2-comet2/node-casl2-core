@@ -1,0 +1,7 @@
+; OUT命令
+CASL    START
+        IN      BUF, LEN
+        RET
+BUF     DS      256
+LEN     DC      1
+        END

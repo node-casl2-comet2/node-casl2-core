@@ -1,6 +1,7 @@
 'use strict';
 
-import { Lexer, LexerResult } from '../../src/casl2/lexer';
+import { Lexer } from '../../src/casl2/lexer';
+import { LexerResult } from '../../src/casl2/lexerResult';
 import { CompileError } from '../../src/errors/compileError';
 import { GR } from '../../src/comet2/gr';
 import * as assert from 'assert';
@@ -103,7 +104,7 @@ suite('Lexer test', () => {
         let result = Lexer.tokenize(line, 3);
         assert(result instanceof CompileError);
     });
-    
+
     // 不明な命令はエラー
     test('tokenize error test: invalid instruction', () => {
         // この場合はラベル名と解釈される

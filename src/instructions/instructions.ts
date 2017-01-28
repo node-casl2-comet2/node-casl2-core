@@ -2,9 +2,10 @@
 
 import { InstructionBase } from './instructionBase';
 import { MDC } from './mdc';
+import { IN } from './in';
 import { OUT } from './out';
 import { GR } from '../comet2/gr';
-import { LexerResult } from '../casl2/lexer';
+import { LexerResult } from '../casl2/lexerResult';
 import { CompileError } from '../errors/compileError';
 import { ArgumentError } from '../errors/errors';
 
@@ -109,11 +110,20 @@ export class Instructions {
         }
     }
 
-    public static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
-        if(result.instruction != 'OUT') throw new Error();
-        if(result.address == undefined || result.outLengthAddress == undefined) throw new Error();
+    public static createIN(result: LexerResult, lineNumber: number): InstructionBase {
+        if (result.instruction != 'IN') throw new Error();
+        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
 
-        const out = new OUT(result.label, result.address, result.outLengthAddress);
+        const out = new IN(result.label, result.address, result.lengthAddress);
+
+        return out;
+    }
+
+    public static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
+        if (result.instruction != 'OUT') throw new Error();
+        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
+
+        const out = new OUT(result.label, result.address, result.lengthAddress);
 
         return out;
     }
