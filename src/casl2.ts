@@ -72,7 +72,7 @@ export class Casl2 {
             if (inst.label) {
                 if (labelMap.has(inst.label)) {
                     // ラベル名に重複があればコンパイルエラーである
-                    errors.push(new CompileError("Duplicate label.", inst.lineNumber));
+                    errors.push(new CompileError(inst.lineNumber, "Duplicate label."));
                 } else {
                     // COMET2は1語16ビット(2バイト)なので2で割っている
                     labelMap.add(inst.label, byteOffset / 2);

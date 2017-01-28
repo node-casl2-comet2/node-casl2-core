@@ -5,7 +5,7 @@ import { MDC } from './mdc';
 import { GR } from '../comet2/gr';
 import { LexerResult } from '../casl2/lexer';
 import { CompileError } from '../errors/compileError';
-import { ArgumentError } from '../errors/argumentError';
+import { ArgumentError } from '../errors/errors';
 
 export class Instructions {
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
