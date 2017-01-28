@@ -215,5 +215,6 @@ export class Instructions {
         ["SVC", 0xF0],
         ["NOP", 0x00],
         ["RPUSH", 0xA0],
+        ["RPOP", 0xA1]
     ]);
 }

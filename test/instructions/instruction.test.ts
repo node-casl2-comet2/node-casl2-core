@@ -138,7 +138,14 @@ suite("Instruction test", () => {
         assert.equal(instruction.toHex(), 0xA000);
     })
 
-    // TODO: RPOP命令
+    // RPOP命令
+    test('RPOP test', () => {
+        const line = 'RPOP';
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        assert.equal(instruction.toHex(), 0xA100);
+    })
 
     // LD命令
     test("LD test", () => {
