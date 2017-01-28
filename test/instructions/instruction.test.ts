@@ -10,7 +10,7 @@ suite("Instruction test", () => {
 
     // START命令
     test("START test", () => {
-        let line = "START";
+        let line = "CASL START";
         let result = Lexer.tokenize(line, 1) as LexerResult;
 
         let instruction = Instructions.create(result, 1);
@@ -18,7 +18,7 @@ suite("Instruction test", () => {
 
         assert.equal(instruction.toHex(), -1);
 
-        line = "START    BEGIN";
+        line = "CASL START    BEGIN";
         result = Lexer.tokenize(line, 1) as LexerResult;
 
         instruction = Instructions.create(result, 1);
@@ -26,12 +26,10 @@ suite("Instruction test", () => {
 
         // アドレス解決をする
         let map = new LabelMap([["BEGIN", 0x03]]);
+        map.bindAdd('CASL', 'BEGIN');
         instruction.resolveAddress(map);
 
-        // TODO: START  BEIGNのようにラベルが指定された場合は
-        // JUMPなどに置き換えることになるかも。この時は
-        // START専用のInstructionをInstructionBaseを継承して作るとうまく行けそう
-        // assert.equal();
+        assert.equal(map.get('CASL') as number, 0x03);
     });
 
     // END命令
