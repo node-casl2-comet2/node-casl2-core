@@ -39,7 +39,9 @@ export class Casl2 {
                     }
                     else if (result.instruction == 'DC') {
                         let dc = Instructions.createDC(result, lineNumber);
-                        if (dc instanceof InstructionBase) {
+                        if (dc instanceof CompileError) {
+                            errors.push(dc);
+                        } else if (dc instanceof InstructionBase) {
                             instructions.push(dc);
                         } else {
                             dc.forEach(mdc => instructions.push(mdc));

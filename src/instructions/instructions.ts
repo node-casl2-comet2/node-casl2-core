@@ -8,6 +8,7 @@ import { GR } from '../comet2/gr';
 import { LexerResult } from '../casl2/lexerResult';
 import { CompileError } from '../errors/compileError';
 import { ArgumentError } from '../errors/errors';
+import { escapeStringConstant } from '../helpers/escapeStringConstant';
 
 export class Instructions {
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
@@ -128,30 +129,46 @@ export class Instructions {
         return out;
     }
 
-    public static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
+    public static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
         if (result.instruction != 'DC') throw new Error();
 
         if (result.consts == undefined) throw new Error();
 
         let isStringLiteral = (c: string | number) => typeof c == 'string' && c.startsWith('\'');
-        let splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string) => {
+
+        let validateStringConstant = (strLiteral: string): CompileError | string => {
             // シングルクォーテーションで囲まれた部分の文字列を取り出す
             let str = strLiteral.slice(1, strLiteral.length - 1);
-            let ch = strLiteral.charAt(1);
+            // シングルクォーテーションをエスケープする
+            const escaped = escapeStringConstant(str);
+            if (escaped == undefined) return new CompileError(lineNumber, 'Single quotes are not collectly escaped.');
+
+            return escaped;
+        }
+
+        let splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string): CompileError | null => {
+            const escaped = validateStringConstant(strLiteral);
+            if (escaped instanceof CompileError) return escaped;
+
+            let ch = escaped.charAt(0);
             let mdc = new MDC(label, undefined, ch);
             mdcs.push(mdc);
-            for (var i = 1; i < str.length; i++) {
-                let ch = strLiteral.charAt(i + 1);
+            for (var i = 1; i < escaped.length; i++) {
+                let ch = escaped.charAt(i);
                 let mdc = new MDC(undefined, undefined, ch);
                 mdcs.push(mdc);
             }
+
+            return null;
         }
 
         if (result.consts.length == 1) {
             let c = result.consts[0];
             if (isStringLiteral(c)) {
                 let mdcs = new Array<MDC>();
-                splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                const error = splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                if (error) return error;
+
                 return mdcs;
             } else {
                 let mdc = new MDC(result.label, c);
@@ -165,7 +182,8 @@ export class Instructions {
             //                               MDC   #0005
             let c = result.consts[0];
             if (isStringLiteral(c)) {
-                splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                const error = splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                if(error) return error;
             } else {
                 let mdc = new MDC(result.label, c);
                 mdcs.push(mdc);
@@ -174,7 +192,8 @@ export class Instructions {
             for (var i = 1; i < result.consts.length; i++) {
                 let c = result.consts[i];
                 if (isStringLiteral(c)) {
-                    splitStringLiteralToMdcs(c as string, mdcs);
+                    const error = splitStringLiteralToMdcs(c as string, mdcs);
+                    if(error) return error;
                 } else {
                     let mdc = new MDC(undefined, c);
                     mdcs.push(mdc);

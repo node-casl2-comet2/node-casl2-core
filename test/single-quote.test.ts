@@ -1,6 +1,7 @@
 'use strict';
 
 import * as assert from 'assert';
+import { escapeStringConstant } from '../src/helpers/escapeStringConstant';
 
 suite('Single quote test', () => {
     test('test', () => {
@@ -21,21 +22,6 @@ suite('Single quote test', () => {
         assert.equal(escaped, "ABC");
 
         escaped = escapeStringConstant(ngPattern);
-        assert(escaped == undefined);
-
-        
+        assert(escaped == undefined);        
     });
-
-    function escapeStringConstant(str: string): string | undefined {
-        let replaced = str.replace(/''/g, "");
-
-        // シングルクォーテーションが2つ連続しているものを空文字に置換しても
-        // まだシングルクォーテーションが残っているということは奇数個のシングルクォーテーションが
-        // 連続しているということだから不正
-        if (replaced.indexOf("'") >= 0) return undefined;
-
-        // シングルクォーテーション2つを1つに置換する
-        let escaped = str.replace(/''/g, "'");
-        return escaped;
-    }
 });
