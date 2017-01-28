@@ -44,7 +44,12 @@ export class Casl2 {
                         } else {
                             dc.forEach(mdc => instructions.push(mdc));
                         }
-                    } else {
+                    } 
+                    else if(result.instruction == 'OUT'){
+                        const out = Instructions.createOUT(result, lineNumber);
+                        instructions.push(out);
+                    }
+                    else {
                         let inst = Instructions.create(result, lineNumber);
                         if (inst instanceof InstructionBase) {
                             instructions.push(inst);

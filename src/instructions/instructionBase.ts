@@ -32,7 +32,7 @@ export class InstructionBase {
             // アドレスが数字なら確定してよい
             if (typeof address == "number") {
                 this._isConfirmed = true;
-            }else{
+            } else {
                 this._isConfirmed = false;
             }
         } else {
@@ -40,11 +40,15 @@ export class InstructionBase {
             this._isConfirmed = true;
         }
 
-        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code)! : 0;
+        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code) ! : 0;
     }
 
     public get instructionName() {
         return this._instructionName;
+    }
+
+    protected get code() {
+        return this._code;
     }
 
     public setAddress(address: number) {
@@ -63,7 +67,7 @@ export class InstructionBase {
         return [this._label, this._instructionName, this._r1, this._r2, this._address].join("   ");
     }
 
-    public toHex(): number {
+    public toHex(): number | number[] {
         if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
 
         // .comファイルに還元されない命令は-1を返す
@@ -92,7 +96,7 @@ export class InstructionBase {
 
         let resolvedAddress = labelMap.get(this._address as string);
         // TODO: コンパイルエラーにする
-        if(resolvedAddress == undefined) throw new Error('undeclared label: ' + this._address as string);
+        if (resolvedAddress == undefined) throw new Error('undeclared label: ' + this._address as string);
         this._address = resolvedAddress;
         this._isConfirmed = true;
     }
@@ -101,21 +105,21 @@ export class InstructionBase {
         return this._label;
     }
 
-    public get address(){
+    public get address() {
         return this._address;
     }
 
     /**
      * 命令のバイト長
      */
-    public get byteLength(){
+    public get byteLength() {
         return this._byteLength;
     }
 
     /**
      * 命令の行番号
      */
-    public get lineNumber(){
+    public get lineNumber() {
         return this._lineNumber;
     }
 

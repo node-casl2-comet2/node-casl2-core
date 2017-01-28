@@ -1,0 +1,7 @@
+; OUT命令
+CASL    START
+        OUT     BUF, LEN
+        RET
+BUF     DC      'HELLO'
+LEN     DC      5
+        END

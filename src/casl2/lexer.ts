@@ -13,6 +13,7 @@ export class Lexer {
         let comment: string | undefined;
         let wordCount: number | undefined;
         let consts: Array<number | string> | undefined;
+        let outLengthAddress: number | string | undefined;
 
         let str = line;
         let semicolonIndex = line.indexOf(';');
@@ -78,7 +79,20 @@ export class Lexer {
                 }
                 consts.push(c);
             }
-        } else {
+        } 
+        else if(instruction == 'OUT'){
+            // OUT   出力領域, 出力文字長さ領域
+
+            // OUT命令の引数の数は2である
+            if(argCount != 2) return new ArgumentError(lineNumber);
+
+            const outAddress = Lexer.toAddress(split[index]);
+            const outLengthAdr = Lexer.toAddress(split[index + 1]);
+            
+            address = outAddress;
+            outLengthAddress = outLengthAdr;
+        }
+        else {
             if (argCount > 0) {
                 // 命令の後の1つ目のトークンはレジスタまたはアドレス
                 let arg1 = split[index++];
@@ -130,7 +144,7 @@ export class Lexer {
                 }
             }
         }
-        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount, consts);
+        return new LexerResult(label, instruction, r1, r2, address, comment, wordCount, consts, outLengthAddress);
     }
 
     private static isLabel(str: string): boolean {
@@ -225,6 +239,7 @@ export class LexerResult {
     private _isCommentLine: boolean;
     private _wordCount: number | undefined;
     private _consts: Array<number | string> | undefined;
+    private _outLengthAddress:number | string | undefined;
 
     constructor(
         label: string | undefined,
@@ -234,7 +249,8 @@ export class LexerResult {
         address: number | string | undefined,
         comment: string | undefined,
         wordCount?: number,
-        consts?: Array<number | string>) {
+        consts?: Array<number | string>,
+        outLengthAddress? : number | string) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;
@@ -243,6 +259,7 @@ export class LexerResult {
         this._comment = comment;
         this._wordCount = wordCount;
         this._consts = consts;
+        this._outLengthAddress = outLengthAddress;
 
         this._isCommentLine = label == undefined &&
             instruction == undefined &&
@@ -286,6 +303,10 @@ export class LexerResult {
 
     public get consts() {
         return this._consts;
+    }
+
+    public get outLengthAddress(){
+        return this._outLengthAddress;
     }
 
     public toString() {

@@ -2,6 +2,7 @@
 
 import { InstructionBase } from './instructionBase';
 import { MDC } from './mdc';
+import { OUT } from './out';
 import { GR } from '../comet2/gr';
 import { LexerResult } from '../casl2/lexer';
 import { CompileError } from '../errors/compileError';
@@ -82,7 +83,7 @@ export class Instructions {
 
             let instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
             return instBase;
-        } 
+        }
 
         throw new Error("Unknown instruction");
     }
@@ -106,6 +107,15 @@ export class Instructions {
             }
             return nops;
         }
+    }
+
+    public static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
+        if(result.instruction != 'OUT') throw new Error();
+        if(result.address == undefined || result.outLengthAddress == undefined) throw new Error();
+
+        const out = new OUT(result.label, result.address, result.outLengthAddress);
+
+        return out;
     }
 
     public static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
