@@ -9,4 +9,5 @@ export enum GR {
     GR5,
     GR6,
     GR7,
+    GR8_SP
 }

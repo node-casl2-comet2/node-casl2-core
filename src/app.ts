@@ -7,15 +7,21 @@ import { Instructions } from './instructions/instructions';
 import { Lexer } from './casl2/lexer';
 import { LexerResult } from './casl2/lexerResult';
 import { InstructionBase } from './instructions/instructionBase';
+import { Casl2CompileOption } from './compileOption';
 
 
 // .casファイルを読み込む
-let buf = Reader.read('./test/testdata/addressLiteral.cas');
+let buf = Reader.read('./test/testdata/gr8.cas');
 
 // 末尾の改行を取り除いて一行ずつに分ける
 let lines = buf.toString().replace(/(\r\n|\r|\n)+$/, "").split(/\r\n|\r|\n/);
 let casl2 = new Casl2();
-let result = casl2.compile(lines);
+
+const compileOption: Casl2CompileOption = {
+    useGR8: true
+};
+
+let result = casl2.compile(lines, compileOption);
 
 if (result.success) {
     // コンパイル成功の場合

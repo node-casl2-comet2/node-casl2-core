@@ -8,9 +8,11 @@ import { LexerResult } from './casl2/lexerResult';
 import { CompileResult } from './compileResult';
 import { LabelMap } from './data/labelMap';
 import { RandomLabelGenerator } from './helpers/randomLabelGenerator';
+import { Casl2CompileOption } from './compileOption';
+import { LexerOption } from './casl2/lexerOption';
 
 export class Casl2 {
-    public compile(lines: Array<string>) {
+    public compile(lines: Array<string>, compileOption?: Casl2CompileOption) {
         let errors: Array<CompileError> = [];
         let instructions: Array<InstructionBase> = [];
 
@@ -18,13 +20,22 @@ export class Casl2 {
         // フェーズ1: で宣言された定数などはとりあえず置いておいて分かることを解析
         // フェーズ2: =で宣言された定数を配置する
         // フェーズ3: アドレス解決フェーズ
+        let lexerOption: LexerOption | undefined = undefined;
+        if (compileOption) {
+            lexerOption = {
+                useGR8: compileOption.useGR8
+            };
+        }
+
+        // レキサーを生成する
+        const lexer = new Lexer(lexerOption);
 
         // フェーズ1
         for (var i = 0; i < lines.length; i++) {
             let line = lines[i];
             let lineNumber = i + 1;
 
-            let result = Lexer.tokenize(line, i);
+            let result = lexer.tokenize(line, i);
             if (result instanceof CompileError) {
                 errors.push(result);
             } else {
