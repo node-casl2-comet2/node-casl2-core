@@ -123,6 +123,38 @@ export class InstructionBase {
         return this._lineNumber;
     }
 
+    public getLiteral(): number | string | undefined {
+        if (this._address == undefined) return undefined;
+        if (typeof this._address != 'string') return undefined;
+
+        // アドレスの一文字目が'='でないならばリテラルではない
+        if (this._address.charAt(0) != '=') return undefined;
+
+        // '='を除いたものを得る
+        const str = this._address.slice(1);
+
+        // 10進定数か?
+        let decimal = parseInt(str, 10);
+        if (decimal) return decimal;
+
+        // 16進定数か?
+        if (str.charAt(0) == '#') {
+            let hex = parseInt(str.slice(1), 16);
+            if (hex) return hex;
+        }
+
+        // 文字列か?
+        if (str.length > 2 &&
+            str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
+        
+        // リテラルならば必ず10進定数か16進定数か文字定数のはず
+        throw new Error();
+    }
+
+    public replaceLiteralWithLabel(label: string) {
+        this._address = label;
+    }
+
     private static byteLengthMap = new Map<number, number>([
         // TODO: コメントに対応を書く
         [0x14, 2],  // LD r1, r2

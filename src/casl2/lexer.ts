@@ -217,8 +217,9 @@ export class Lexer {
         if (Lexer.isLabel(str)) return str;
 
         // アドレスはリテラルかも
-        // 1文字目と末尾の文字がシングルクォーテーションである
-        if (str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
+        // 1文字目が'='である
+        // TODO: 等号の後には10進か16進か文字定数しかこないのでここでチェック
+        if (str.charAt(0) == '=') return str;
 
         // アドレスは16進数かも
         // 16進定数は#で始まる数字の連続である

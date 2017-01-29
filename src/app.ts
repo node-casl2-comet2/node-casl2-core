@@ -10,7 +10,7 @@ import { InstructionBase } from './instructions/instructionBase';
 
 
 // .casファイルを読み込む
-let buf = Reader.read('./test/testdata/in1.cas');
+let buf = Reader.read('./test/testdata/addressLiteral.cas');
 
 // 末尾の改行を取り除いて一行ずつに分ける
 let lines = buf.toString().replace(/(\r\n|\r|\n)+$/, "").split(/\r\n|\r|\n/);

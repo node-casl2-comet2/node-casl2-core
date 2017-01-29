@@ -4,8 +4,10 @@ import { Instructions } from './instructions/instructions';
 import { InstructionBase } from './instructions/instructionBase';
 import { CompileError } from './errors/compileError';
 import { Lexer } from './casl2/lexer';
+import { LexerResult } from './casl2/lexerResult';
 import { CompileResult } from './compileResult';
 import { LabelMap } from './data/labelMap';
+import { RandomLabelGenerator } from './helpers/randomLabelGenerator';
 
 export class Casl2 {
     public compile(lines: Array<string>) {
@@ -69,7 +71,30 @@ export class Casl2 {
             }
         }
 
-        // TODO: フェーズ2
+        // フェーズ2
+        // =で宣言されたリテラルをDC命令として配置する
+        instructions.forEach(inst => {
+            const literal = inst.getLiteral();
+            if (literal != undefined) {
+                const label = RandomLabelGenerator.generate();
+                // 命令のリテラル部分をDC命令のラベとと置き換える
+                inst.replaceLiteralWithLabel(label);
+
+                // リテラルをオペランドとするDC命令を生成する
+                const lexerResult = new LexerResult(label, 'DC', undefined, undefined, undefined, undefined, undefined, [literal]);
+                const dc = Instructions.createDC(lexerResult, inst.lineNumber);
+
+                // 生成したDC命令を追加する
+                if (dc instanceof CompileError) {
+                    errors.push(dc);
+                } else if (dc instanceof InstructionBase) {
+                    instructions.push(dc);
+                } else {
+                    dc.forEach(mdc => instructions.push(mdc));
+                }
+            }
+        });
+
 
         // フェーズ3
         // 各ラベルの番地を確定させる

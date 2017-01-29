@@ -1,0 +1,8 @@
+CASL    START
+        LD      GR1,  =2
+        LD      GR1, ='ABCDE'
+        LD      GR1, =#AB
+        LAD     GR2, 3
+        ADDA    GR1, GR2
+        RET
+        END
