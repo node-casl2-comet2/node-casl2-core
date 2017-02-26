@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-import { GR } from '../comet2/gr';
+import { GR } from "../comet2/gr";
 
 export class LexerResult {
     private _label: string | undefined;
@@ -12,7 +12,7 @@ export class LexerResult {
     private _isCommentLine: boolean;
     private _wordCount: number | undefined;
     private _consts: Array<number | string> | undefined;
-    private _lengthAddress:number | string | undefined;
+    private _lengthAddress: number | string | undefined;
 
     constructor(
         label: string | undefined,
@@ -23,7 +23,7 @@ export class LexerResult {
         comment: string | undefined,
         wordCount?: number,
         consts?: Array<number | string>,
-        lengthAddress? : number | string) {
+        lengthAddress?: number | string) {
         this._label = label;
         this._instruction = instruction;
         this._r1 = r1;
@@ -78,7 +78,7 @@ export class LexerResult {
         return this._consts;
     }
 
-    public get lengthAddress(){
+    public get lengthAddress() {
         return this._lengthAddress;
     }
 

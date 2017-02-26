@@ -1,20 +1,20 @@
-'use strict';
+"use strict";
 
-import { Instructions } from './instructions/instructions';
-import { InstructionBase } from './instructions/instructionBase';
-import { CompileError } from './errors/compileError';
-import { Lexer } from './casl2/lexer';
-import { LexerResult } from './casl2/lexerResult';
-import { CompileResult } from './compileResult';
-import { LabelMap } from './data/labelMap';
-import { RandomLabelGenerator } from './helpers/randomLabelGenerator';
-import { Casl2CompileOption } from './compileOption';
-import { LexerOption } from './casl2/lexerOption';
+import { Instructions } from "./instructions/instructions";
+import { InstructionBase } from "./instructions/instructionBase";
+import { CompileError } from "./errors/compileError";
+import { Lexer } from "./casl2/lexer";
+import { LexerResult } from "./casl2/lexerResult";
+import { CompileResult } from "./compileResult";
+import { LabelMap } from "./data/labelMap";
+import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
+import { Casl2CompileOption } from "./compileOption";
+import { LexerOption } from "./casl2/lexerOption";
 
 export class Casl2 {
     public compile(lines: Array<string>, compileOption?: Casl2CompileOption) {
-        let errors: Array<CompileError> = [];
-        let instructions: Array<InstructionBase> = [];
+        const errors: Array<CompileError> = [];
+        const instructions: Array<InstructionBase> = [];
 
         // コンパイルは3段階で行う
         // フェーズ1: で宣言された定数などはとりあえず置いておいて分かることを解析
@@ -31,27 +31,27 @@ export class Casl2 {
         const lexer = new Lexer(lexerOption);
 
         // フェーズ1
-        for (var i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            let lineNumber = i + 1;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const lineNumber = i + 1;
 
-            let result = lexer.tokenize(line, i);
+            const result = lexer.tokenize(line, i);
             if (result instanceof CompileError) {
                 errors.push(result);
             } else {
                 if (result.isCommentLine) {
                     // コメント行なので無視する
                 } else {
-                    if (result.instruction == 'DS') {
-                        let ds = Instructions.createDS(result, lineNumber);
+                    if (result.instruction == "DS") {
+                        const ds = Instructions.createDS(result, lineNumber);
                         if (ds instanceof InstructionBase) {
                             instructions.push(ds);
                         } else {
                             ds.forEach(nop => instructions.push(nop));
                         }
                     }
-                    else if (result.instruction == 'DC') {
-                        let dc = Instructions.createDC(result, lineNumber);
+                    else if (result.instruction == "DC") {
+                        const dc = Instructions.createDC(result, lineNumber);
                         if (dc instanceof CompileError) {
                             errors.push(dc);
                         } else if (dc instanceof InstructionBase) {
@@ -60,16 +60,16 @@ export class Casl2 {
                             dc.forEach(mdc => instructions.push(mdc));
                         }
                     }
-                    else if (result.instruction == 'IN') {
+                    else if (result.instruction == "IN") {
                         const IN = Instructions.createIN(result, lineNumber);
                         instructions.push(IN);
                     }
-                    else if (result.instruction == 'OUT') {
+                    else if (result.instruction == "OUT") {
                         const out = Instructions.createOUT(result, lineNumber);
                         instructions.push(out);
                     }
                     else {
-                        let inst = Instructions.create(result, lineNumber);
+                        const inst = Instructions.create(result, lineNumber);
                         if (inst instanceof InstructionBase) {
                             instructions.push(inst);
                         }
@@ -92,7 +92,7 @@ export class Casl2 {
                 inst.replaceLiteralWithLabel(label);
 
                 // リテラルをオペランドとするDC命令を生成する
-                const lexerResult = new LexerResult(label, 'DC', undefined, undefined, undefined, undefined, undefined, [literal]);
+                const lexerResult = new LexerResult(label, "DC", undefined, undefined, undefined, undefined, undefined, [literal]);
                 const dc = Instructions.createDC(lexerResult, inst.lineNumber);
 
                 // 生成したDC命令を追加する
@@ -113,15 +113,15 @@ export class Casl2 {
         // ラベルマップを作る
         let byteOffset = 0;
         const labelMap = new LabelMap();
-        for (var i = 0; i < instructions.length; i++) {
-            let inst = instructions[i];
+        for (let i = 0; i < instructions.length; i++) {
+            const inst = instructions[i];
 
             if (inst.label) {
                 if (labelMap.has(inst.label)) {
                     // ラベル名に重複があればコンパイルエラーである
                     errors.push(new CompileError(inst.lineNumber, "Duplicate label."));
                 } else {
-                    if (inst.instructionName === 'START' && inst.address != undefined) {
+                    if (inst.instructionName === "START" && inst.address != undefined) {
                         // START命令でadr指定がある場合はadrから開始することになる
                         labelMap.bindAdd(inst.label, inst.address as string);
                     } else {

@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
-import { CompileError } from './errors/compileError';
-import { InstructionBase } from './instructions/instructionBase';
-import { LabelMap } from './data/labelMap';
+import { CompileError } from "./errors/compileError";
+import { InstructionBase } from "./instructions/instructionBase";
+import { LabelMap } from "./data/labelMap";
 
 export class CompileResult {
     private _errors: Array<CompileError>;

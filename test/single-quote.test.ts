@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
-import * as assert from 'assert';
-import { escapeStringConstant } from '../src/helpers/escapeStringConstant';
+import * as assert from "assert";
+import { escapeStringConstant } from "../src/helpers/escapeStringConstant";
 
-suite('Single quote test', () => {
-    test('test', () => {
+suite("Single quote test", () => {
+    test("test", () => {
         // 正しいシングルクォーテーションの数
-        let okPattern1 = "''A''''";
+        const okPattern1 = "''A''''";
         // シングルクォーテーションなし
-        let okPattern2 = "ABC";
+        const okPattern2 = "ABC";
 
         // 不正なシングルクォーテーションの数
-        let ngPattern = "''A'''B";
+        const ngPattern = "''A'''B";
 
         let escaped = escapeStringConstant(okPattern1);
         assert(escaped != undefined);
@@ -22,6 +22,6 @@ suite('Single quote test', () => {
         assert.equal(escaped, "ABC");
 
         escaped = escapeStringConstant(ngPattern);
-        assert(escaped == undefined);        
+        assert(escaped == undefined);
     });
 });

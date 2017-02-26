@@ -1,27 +1,27 @@
-'use strict';
+"use strict";
 
-import { Reader } from './io/reader';
-import { Writer } from '../src/io/writer';
-import { Casl2 } from './casl2';
-import { Instructions } from './instructions/instructions';
-import { Lexer } from './casl2/lexer';
-import { LexerResult } from './casl2/lexerResult';
-import { InstructionBase } from './instructions/instructionBase';
-import { Casl2CompileOption } from './compileOption';
+import { Reader } from "./io/reader";
+import { Writer } from "../src/io/writer";
+import { Casl2 } from "./casl2";
+import { Instructions } from "./instructions/instructions";
+import { Lexer } from "./casl2/lexer";
+import { LexerResult } from "./casl2/lexerResult";
+import { InstructionBase } from "./instructions/instructionBase";
+import { Casl2CompileOption } from "./compileOption";
 
 
 // .casファイルを読み込む
-let buf = Reader.read('./test/testdata/gr8.cas');
+const buf = Reader.read("./test/testdata/gr8.cas");
 
 // 末尾の改行を取り除いて一行ずつに分ける
-let lines = buf.toString().replace(/(\r\n|\r|\n)+$/, "").split(/\r\n|\r|\n/);
-let casl2 = new Casl2();
+const lines = buf.toString().replace(/(\r\n|\r|\n)+$/, "").split(/\r\n|\r|\n/);
+const casl2 = new Casl2();
 
 const compileOption: Casl2CompileOption = {
     useGR8: true
 };
 
-let result = casl2.compile(lines, compileOption);
+const result = casl2.compile(lines, compileOption);
 
 if (result.success) {
     // コンパイル成功の場合
@@ -29,7 +29,7 @@ if (result.success) {
     const flatten = [].concat.apply([], hex) as Array<number>;
     const binary = flatten.filter(x => x != -1);
 
-    let firstStartInst = result.instructions[0];
+    const firstStartInst = result.instructions[0];
     // 先頭16バイト分に実行開始番地を埋め込む
     binary.unshift(result.labelMap.get(firstStartInst.label as string) as number, 0, 0, 0, 0, 0, 0, 0);
     Writer.binaryWrite("temp.com", binary);

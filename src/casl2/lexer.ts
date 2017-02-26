@@ -1,9 +1,10 @@
-'use strict';
-import { GR } from '../comet2/gr';
-import { CompileError } from '../errors/compileError';
-import { InvalidInstructionError, InvalidLabelError, ArgumentError } from '../errors/errors';
-import { LexerResult } from './lexerResult';
-import { LexerOption } from './lexerOption';
+"use strict";
+
+import { GR } from "../comet2/gr";
+import { CompileError } from "../errors/compileError";
+import { InvalidInstructionError, InvalidLabelError, ArgumentError } from "../errors/errors";
+import { LexerResult } from "./lexerResult";
+import { LexerOption } from "./lexerOption";
 
 export class Lexer {
     private _lexerOption?: LexerOption;
@@ -29,7 +30,7 @@ export class Lexer {
         let lengthAddress: number | string | undefined;
 
         let str = line;
-        let semicolonIndex = line.indexOf(';');
+        const semicolonIndex = line.indexOf(";");
         if (semicolonIndex >= 0) {
 
             comment = line.slice(semicolonIndex);
@@ -42,15 +43,15 @@ export class Lexer {
 
         // TODO: コンマの区切りは引数の間にのみで使えるので
         //       ラベルと命令の間には使えないようにする
-        let split = str.trim().split(/\s+|,\s+/);
+        const split = str.trim().split(/\s+|,\s+/);
         let index = 0;
-        let first = split[index];
+        const first = split[index];
         if (this.isInstruction(first)) {
             // 1つ目のトークンが命令の場合
             instruction = first;
             index++;
         } else {
-            // 1つ目のトークンがラベルの場合            
+            // 1つ目のトークンがラベルの場合
             // 正常なラベルか?
             if (!this.isLabel(first)) return new InvalidLabelError(lineNumber);
             if (this.isGR(first)) return new InvalidLabelError(lineNumber);
@@ -58,7 +59,7 @@ export class Lexer {
             label = first;
 
             index++;
-            let inst = split[index];
+            const inst = split[index];
             if (!this.isInstruction(inst)) return new InvalidInstructionError(lineNumber);
 
             instruction = inst;
@@ -76,16 +77,16 @@ export class Lexer {
         // 6. 定数[, 定数] ... (DCのみ)
 
         // 引数の数を求める
-        let argCount = split.length - index;
+        const argCount = split.length - index;
 
-        if (instruction == 'DC') {
+        if (instruction == "DC") {
             // DC命令のオペランドの数は1以上である
             if (argCount == 0) return new ArgumentError(lineNumber);
 
-            for (var i = 0; i < argCount; i++) {
-                let arg = split[index + i];
+            for (let i = 0; i < argCount; i++) {
+                const arg = split[index + i];
                 // 定数か?
-                let c = this.toConst(arg);
+                const c = this.toConst(arg);
                 if (c == undefined) return new ArgumentError(lineNumber);
                 if (consts == undefined) {
                     consts = new Array();
@@ -93,7 +94,7 @@ export class Lexer {
                 consts.push(c);
             }
         }
-        else if (instruction == 'IN') {
+        else if (instruction == "IN") {
             // IN    入力領域, 入力文字長領域
 
             // IN命令の引数の数は2である
@@ -105,7 +106,7 @@ export class Lexer {
             address = inAddress;
             lengthAddress = inLengthAddress;
         }
-        else if (instruction == 'OUT') {
+        else if (instruction == "OUT") {
             // OUT   出力領域, 出力文字長さ領域
 
             // OUT命令の引数の数は2である
@@ -120,26 +121,26 @@ export class Lexer {
         else {
             if (argCount > 0) {
                 // 命令の後の1つ目のトークンはレジスタまたはアドレス
-                let arg1 = split[index++];
+                const arg1 = split[index++];
                 if (this.isGR(arg1)) {
                     r1 = this.toGR(arg1);
 
                     if (argCount > 1) {
-                        let arg2 = split[index++];
+                        const arg2 = split[index++];
                         // GRまたはアドレス
                         if (this.isGR(arg2)) {
                             // 2. GR, GRのパターン
                             r2 = this.toGR(arg2);
                         } else {
                             // 3. GR, アドレス, GRのパターン
-                            let adr = this.toAddress(arg2);
+                            const adr = this.toAddress(arg2);
                             if (!adr) return new ArgumentError(lineNumber);
 
                             address = adr;
 
                             // arg3は存在しないかもしれない
                             if (argCount == 3) {
-                                let arg3 = split[index];
+                                const arg3 = split[index];
                                 if (!this.isGR(arg3)) return new ArgumentError(lineNumber);
 
                                 r2 = this.toGR(arg3);
@@ -148,20 +149,20 @@ export class Lexer {
                     }
                 } else {
                     // 4. アドレス， GRのパターン
-                    let adr = this.toAddress(arg1);
+                    const adr = this.toAddress(arg1);
                     if (adr == undefined) return new ArgumentError(lineNumber);
 
                     address = adr;
 
                     if (argCount == 1) {
-                        if (instruction == 'DS') {
+                        if (instruction == "DS") {
                             // 5. 語数(10進定数)パターン
-                            if (typeof adr != 'number' || arg1.startsWith('#')) return new ArgumentError(lineNumber);
+                            if (typeof adr != "number" || arg1.startsWith("#")) return new ArgumentError(lineNumber);
                             wordCount = adr;
                         }
                     }
                     else {
-                        let arg2 = split[index];
+                        const arg2 = split[index];
                         if (!this.isGR(arg2)) return new ArgumentError(lineNumber);
 
                         r2 = this.toGR(arg2);
@@ -174,14 +175,14 @@ export class Lexer {
 
     private isLabel(str: string): boolean {
         // 1文字目が大文字で2文字目以降は大文字または数字である
-        let regex = /\b[A-Z][A-Z0-9]*\b/;
-        let result = str.match(regex);
+        const regex = /\b[A-Z][A-Z0-9]*\b/;
+        const result = str.match(regex);
         return result != null && str.length <= 8;
     }
 
     private isInstruction(str: string): boolean {
-        let regex = /\b(START|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP)\b/;
-        let result = str.match(regex);
+        const regex = /\b(START|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP)\b/;
+        const result = str.match(regex);
         return result != null;
     }
 
@@ -193,7 +194,7 @@ export class Lexer {
             regex = /\b(GR0|GR1|GR2|GR3|GR4|GR5|GR6|GR7)\b/;
         }
 
-        let result = str.match(regex);
+        const result = str.match(regex);
         return result != null;
     }
 
@@ -215,18 +216,18 @@ export class Lexer {
 
     private toConst(str: string): number | string | undefined {
         // 10進定数か?
-        let decimal = parseInt(str, 10);
+        const decimal = parseInt(str, 10);
         if (decimal) return decimal;
 
         // 16進定数か?
-        if (str.charAt(0) == '#') {
-            let hex = parseInt(str.slice(1), 16);
+        if (str.charAt(0) == "#") {
+            const hex = parseInt(str.slice(1), 16);
             if (hex) return hex;
         }
 
         // 文字列か?
         if (str.length > 2 &&
-            str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
+            str.charAt(0) == "'" && str.charAt(str.length - 1) == "'") return str;
 
         // ラベルか?
         if (this.isLabel(str)) return str;
@@ -241,21 +242,21 @@ export class Lexer {
         // アドレスはリテラルかも
         // 1文字目が'='である
         // TODO: 等号の後には10進か16進か文字定数しかこないのでここでチェック
-        if (str.charAt(0) == '=') return str;
+        if (str.charAt(0) == "=") return str;
 
         // アドレスは16進数かも
         // 16進定数は#で始まる数字の連続である
-        if (str.charAt(0) == '#') {
-            let address = parseInt(str.slice(1), 16);
+        if (str.charAt(0) == "#") {
+            const address = parseInt(str.slice(1), 16);
             if (isNaN(address)) return address;
         }
 
         // アドレスは10進数かも
         // マイナスはあり得ない
-        if (str.charAt(0) == '-') return undefined;
+        if (str.charAt(0) == "-") return undefined;
         // 10進数と解釈して変換する
         // 変換に失敗するとNaNが返る
-        let address = parseInt(str, 10);
+        const address = parseInt(str, 10);
         if (isNaN(address)) {
             return undefined;
         } else {

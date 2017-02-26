@@ -12,5 +12,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"removeComments": false,
 		"preserveConstEnums": true
-	}
+	},
+	"exclude": [
+		"node_modules"
+	]
 }

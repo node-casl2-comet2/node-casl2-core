@@ -1,15 +1,11 @@
-'use strict';
+"use strict";
 
-import { Writer } from '../../src/io/writer';
-import * as assert from 'assert';
+import { Writer } from "../../src/io/writer";
+import * as assert from "assert";
 
-suite('Writer test', () => {
-    test('binary write test', () => {
-        
-    });
-
-    test('create binary buffer test', () => {
-        let buffer = Writer.createBinaryBuffer([0x1234, 0x5678, 0x12345678]);
+suite("Writer test", () => {
+    test("create binary buffer test", () => {
+        const buffer = Writer.createBinaryBuffer([0x1234, 0x5678, 0x12345678]);
         assert.equal(buffer.byteLength, 8);
         assert.equal(buffer.readUInt8(0), 0x12);
         assert.equal(buffer.readUInt8(1), 0x34);

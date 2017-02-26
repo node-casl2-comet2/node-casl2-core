@@ -1,30 +1,30 @@
-'use strict';
+"use strict";
 
-import * as fs from 'fs';
+import * as fs from "fs";
 
 export class Writer {
     public static binaryWrite(path: string, numbers: Array<number>) {
-        let buffer = Writer.createBinaryBuffer(numbers);
+        const buffer = Writer.createBinaryBuffer(numbers);
 
         fs.writeFileSync(path, buffer);
     }
 
     public static createBinaryBuffer(numbers: Array<number>): Buffer {
-        let byteLength = numbers
+        const byteLength = numbers
             .map(n => {
-                let digit = n.toString(16).length;
+                const digit = n.toString(16).length;
                 return digit <= 4 ? 4 : digit;
             })
             .reduce((prev, current, _, __) => prev + current) / 2;
 
-        let arrayBuffer = new ArrayBuffer(byteLength);
-        let view = new DataView(arrayBuffer);
+        const arrayBuffer = new ArrayBuffer(byteLength);
+        const view = new DataView(arrayBuffer);
 
         let byteOffset = 0;
-        for (var i = 0; i < numbers.length; i++) {
-            let n = numbers[i];
+        for (let i = 0; i < numbers.length; i++) {
+            const n = numbers[i];
             // 16進数での桁数を調べる
-            let digit = n.toString(16).length;
+            const digit = n.toString(16).length;
             if (digit == 8) {
                 // 第3引数にfalseを指定するとビッグエンディアンになる
                 view.setUint32(byteOffset, n, false);

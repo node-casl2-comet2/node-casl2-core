@@ -1,11 +1,13 @@
-import { Lexer } from '../../src/casl2/lexer';
-import { LexerResult } from '../../src/casl2/lexerResult';
-import { InstructionBase } from '../../src/instructions/instructionBase';
-import { Instructions } from '../../src/instructions/instructions';
-import { CompileError } from '../../src/errors/compileError';
-import { LabelMap } from '../../src/data/labelMap';
-import { Casl2 } from '../../src/casl2';
-import * as assert from 'assert';
+"use strict";
+
+import { Lexer } from "../../src/casl2/lexer";
+import { LexerResult } from "../../src/casl2/lexerResult";
+import { InstructionBase } from "../../src/instructions/instructionBase";
+import { Instructions } from "../../src/instructions/instructions";
+import { CompileError } from "../../src/errors/compileError";
+import { LabelMap } from "../../src/data/labelMap";
+import { Casl2 } from "../../src/casl2";
+import * as assert from "assert";
 
 suite("Instruction test", () => {
 
@@ -26,18 +28,18 @@ suite("Instruction test", () => {
         if (instruction instanceof CompileError) throw new Error();
 
         // アドレス解決をする
-        let map = new LabelMap([["BEGIN", 0x03]]);
-        map.bindAdd('CASL', 'BEGIN');
+        const map = new LabelMap([["BEGIN", 0x03]]);
+        map.bindAdd("CASL", "BEGIN");
         instruction.resolveAddress(map);
 
-        assert.equal(map.get('CASL') as number, 0x03);
+        assert.equal(map.get("CASL") as number, 0x03);
     });
 
     // END命令
     test("END test", () => {
         // 引数なしパターン
-        let line = "END"
-        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const line = "END"
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         assert.equal(instruction.toHex(), -1);
@@ -49,27 +51,27 @@ suite("Instruction test", () => {
         let line = "DS  3";
         let ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(ds.length == 3);
-        assert(ds[0].instructionName == 'NOP' && ds[0].label == undefined);
-        assert(ds[1].instructionName == 'NOP' && ds[1].label == undefined);
-        assert(ds[2].instructionName == 'NOP' && ds[2].label == undefined);
+        assert(ds[0].instructionName == "NOP" && ds[0].label == undefined);
+        assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
+        assert(ds[2].instructionName == "NOP" && ds[2].label == undefined);
 
         // ラベル有り
         line = "CONST DS 3";
         ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(ds.length == 3);
-        assert(ds[0].instructionName == 'NOP' && ds[0].label == 'CONST');
-        assert(ds[1].instructionName == 'NOP' && ds[1].label == undefined);
-        assert(ds[2].instructionName == 'NOP' && ds[2].label == undefined);
+        assert(ds[0].instructionName == "NOP" && ds[0].label == "CONST");
+        assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
+        assert(ds[2].instructionName == "NOP" && ds[2].label == undefined);
 
         // 語数0(ラベル無し)
         // 領域は確保されず何もしないのと同じ
         line = "DS 0";
-        let olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        const olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         assert(olbl.toHex() == -1);
 
         // 語数0(ラベル有り)
         // 語数0でもラベルは有効である
-        let lines = [
+        const lines = [
             "CASL    START",
             "        LAD     GR1, 2",
             "        ST      GR1, L1",  // L1とL2は同じ番地を指すはず
@@ -81,11 +83,11 @@ suite("Instruction test", () => {
             "        END"
         ];
 
-        let casl2 = new Casl2();
-        let result = casl2.compile(lines);
+        const casl2 = new Casl2();
+        const result = casl2.compile(lines);
 
-        let st = result.instructions[2];
-        let ld = result.instructions[3];
+        const st = result.instructions[2];
+        const ld = result.instructions[3];
         assert(st.address as number == ld.address as number);
     });
 
@@ -120,7 +122,7 @@ suite("Instruction test", () => {
         line = "DC L0";
         dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         // アドレス解決をする
-        let map = new LabelMap([["L0", 0x0002]]);
+        const map = new LabelMap([["L0", 0x0002]]);
         dc.resolveAddress(map);
         assert.equal(dc.toHex(), 0x0002);
     });
@@ -130,8 +132,8 @@ suite("Instruction test", () => {
     // TODO: OUT命令
 
     // RPUSH命令
-    test('RPUSH test', () => {
-        const line = 'RPUSH';
+    test("RPUSH test", () => {
+        const line = "RPUSH";
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
@@ -139,8 +141,8 @@ suite("Instruction test", () => {
     })
 
     // RPOP命令
-    test('RPOP test', () => {
-        const line = 'RPOP';
+    test("RPOP test", () => {
+        const line = "RPOP";
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
@@ -611,8 +613,8 @@ suite("Instruction test", () => {
     // POP命令
     test("POP test", () => {
         // rパターン
-        let line = "POP GR1"
-        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const line = "POP GR1"
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         assert.equal(instruction.toHex(), 0x7110);;
@@ -638,8 +640,8 @@ suite("Instruction test", () => {
     // RET命令
     test("RET test", () => {
         // 引数なしパターン
-        let line = "RET"
-        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const line = "RET"
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         assert.equal(instruction.toHex(), 0x8100);
@@ -665,8 +667,8 @@ suite("Instruction test", () => {
     // NOP命令
     test("NOP test", () => {
         // 引数なしパターン
-        let line = "NOP"
-        let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const line = "NOP"
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         assert.equal(instruction.toHex(), 0x0000);

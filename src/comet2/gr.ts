@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 export enum GR {
     GR0,

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * コンパイルエラーの基底クラス

@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import { GR } from '../comet2/gr';
-import { LabelMap } from '../data/labelMap';
+import { GR } from "../comet2/gr";
+import { LabelMap } from "../data/labelMap";
 
 export class InstructionBase {
     private _lineNumber: number;
@@ -78,7 +78,7 @@ export class InstructionBase {
         // 16進数で2桁左にずらす
         hex = hex << 0x08;
         // r1とr2はundefinedかもしれない
-        let gr = ((this._r1 || 0) << 0x04) | (this._r2 || 0);
+        const gr = ((this._r1 || 0) << 0x04) | (this._r2 || 0);
         hex = hex | gr;
 
         if (this._address != undefined) {
@@ -94,9 +94,9 @@ export class InstructionBase {
     public resolveAddress(labelMap: LabelMap) {
         if (this._isConfirmed) return;
 
-        let resolvedAddress = labelMap.get(this._address as string);
+        const resolvedAddress = labelMap.get(this._address as string);
         // TODO: コンパイルエラーにする
-        if (resolvedAddress == undefined) throw new Error('undeclared label: ' + this._address as string);
+        if (resolvedAddress == undefined) throw new Error("undeclared label: " + this._address as string);
         this._address = resolvedAddress;
         this._isConfirmed = true;
     }
@@ -125,28 +125,28 @@ export class InstructionBase {
 
     public getLiteral(): number | string | undefined {
         if (this._address == undefined) return undefined;
-        if (typeof this._address != 'string') return undefined;
+        if (typeof this._address != "string") return undefined;
 
         // アドレスの一文字目が'='でないならばリテラルではない
-        if (this._address.charAt(0) != '=') return undefined;
+        if (this._address.charAt(0) != "=") return undefined;
 
         // '='を除いたものを得る
         const str = this._address.slice(1);
 
         // 10進定数か?
-        let decimal = parseInt(str, 10);
+        const decimal = parseInt(str, 10);
         if (decimal) return decimal;
 
         // 16進定数か?
-        if (str.charAt(0) == '#') {
-            let hex = parseInt(str.slice(1), 16);
+        if (str.charAt(0) == "#") {
+            const hex = parseInt(str.slice(1), 16);
             if (hex) return hex;
         }
 
         // 文字列か?
         if (str.length > 2 &&
-            str.charAt(0) == '\'' && str.charAt(str.length - 1) == '\'') return str;
-        
+            str.charAt(0) == "'" && str.charAt(str.length - 1) == "'") return str;
+
         // リテラルならば必ず10進定数か16進定数か文字定数のはず
         throw new Error();
     }
