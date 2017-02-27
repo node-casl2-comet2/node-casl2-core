@@ -10,16 +10,16 @@ export class MDC extends InstructionBase {
         this._charLiteral = charLiteral;
     }
 
-    public toHex(): number {
+    public toHex(): Array<number> {
         if (this._charLiteral) {
             if (this._charLiteral.length != 1) throw new Error();
 
             const asciiCode = this._charLiteral.charCodeAt(0);
             const hex = asciiCode;
-            return hex;
+            return [hex];
         } else {
             const hex = this.address as number;
-            return hex;
+            return [hex];
         }
     }
 

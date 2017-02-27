@@ -19,7 +19,7 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(result, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), -1);
+        assert(instruction.toHex().length == 0);
 
         line = "CASL START    BEGIN";
         result = Lexer.tokenize(line, 1) as LexerResult;
@@ -42,7 +42,7 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), -1);
+        assert(instruction.toHex().length == 0);
     });
 
     // DS命令
@@ -67,7 +67,7 @@ suite("Instruction test", () => {
         // 領域は確保されず何もしないのと同じ
         line = "DS 0";
         const olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
-        assert(olbl.toHex() == -1);
+        assert(olbl.toHex().length == 0);
 
         // 語数0(ラベル有り)
         // 語数0でもラベルは有効である
@@ -96,27 +96,27 @@ suite("Instruction test", () => {
         // 10進定数
         let line = "DC  3";
         let dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
-        assert.equal(dc.toHex(), 0x0003);
+        assert.deepEqual(dc.toHex(), [0x0003]);
 
         // 16進定数
         line = "DC #00AB";
         dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
-        assert.equal(dc.toHex(), 0x00AB);
+        assert.deepEqual(dc.toHex(), [0x00AB]);
 
         // 文字列定数(1文字)
         line = "DC 'A'";
         let mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(mdcs.length == 1);
         // 'A'のアスキーコードは0x41である
-        assert.equal(mdcs[0].toHex(), 0x0041);
+        assert.deepEqual(mdcs[0].toHex(), [0x0041]);
 
         // 文字列定数(2文字以上)
         line = "DC 'ABC'"
         mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(mdcs.length == 3);
-        assert.equal(mdcs[0].toHex(), 0x0041);
-        assert.equal(mdcs[1].toHex(), 0x0042);
-        assert.equal(mdcs[2].toHex(), 0x0043);
+        assert.deepEqual(mdcs[0].toHex(), [0x0041]);
+        assert.deepEqual(mdcs[1].toHex(), [0x0042]);
+        assert.deepEqual(mdcs[2].toHex(), [0x0043]);
 
         // ラベル
         line = "DC L0";
@@ -124,7 +124,7 @@ suite("Instruction test", () => {
         // アドレス解決をする
         const map = new LabelMap([["L0", 0x0002]]);
         dc.resolveAddress(map);
-        assert.equal(dc.toHex(), 0x0002);
+        assert.deepEqual(dc.toHex(), [0x0002]);
     });
 
     // TODO: IN命令
@@ -137,7 +137,7 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0xA000);
+        assert.deepEqual(instruction.toHex(), [0xA000]);
     })
 
     // RPOP命令
@@ -146,7 +146,7 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0xA100);
+        assert.deepEqual(instruction.toHex(), [0xA100]);
     })
 
     // LD命令
@@ -154,23 +154,23 @@ suite("Instruction test", () => {
         // r1, r2パターン
         let line = "LD GR1, GR2";
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
-        if (instruction instanceof CompileError) throw new Error();
+        if (instruction instanceof CompileError) throw new Error(instruction.message);
 
-        assert.equal(instruction.toHex(), 0x1412);
+        assert.deepEqual(instruction.toHex(), [0x1412]);
 
         // r1, adrパターン
         line = "LD GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
-        if (instruction instanceof CompileError) throw new Error();
+        if (instruction instanceof CompileError) throw new Error(instruction.message);
 
-        assert.equal(instruction.toHex(), 0x10100005);
+        assert.deepEqual(instruction.toHex(), [0x1010, 0x0005]);
 
         // r1, adr, xパターン
         line = "LD GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x10120005);
+        assert.deepEqual(instruction.toHex(), [0x1012, 0x0005]);
     });
 
     // ST命令
@@ -180,14 +180,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x11100005);
+        assert.deepEqual(instruction.toHex(), [0x1110, 0x0005]);
 
         // r1, adr, xパターン
         line = "ST GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x11120005);
+        assert.deepEqual(instruction.toHex(), [0x1112, 0x0005]);
     });
 
     // LAD命令
@@ -197,14 +197,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x12100005);
+        assert.deepEqual(instruction.toHex(), [0x1210, 0x0005]);
 
         // r1, adr, xパターン
         line = "LAD GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x12120005);
+        assert.deepEqual(instruction.toHex(), [0x1212, 0x0005]);
     });
 
     // ADDA命令
@@ -214,21 +214,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x2412);
+        assert.deepEqual(instruction.toHex(), [0x2412]);
 
         // r1, adrパターン
         line = "ADDA GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x20100005);
+        assert.deepEqual(instruction.toHex(), [0x2010, 0x0005]);
 
         // r1, adr, xパターン
         line = "ADDA GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x20120005);
+        assert.deepEqual(instruction.toHex(), [0x2012, 0x0005]);
     });
 
     // ADDL命令
@@ -238,21 +238,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x2612);
+        assert.deepEqual(instruction.toHex(), [0x2612]);
 
         // r1, adrパターン
         line = "ADDL GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x22100005);
+        assert.deepEqual(instruction.toHex(), [0x2210, 0x0005]);
 
         // r1, adr, xパターン
         line = "ADDL GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x22120005);
+        assert.deepEqual(instruction.toHex(), [0x2212, 0x0005]);
     });
 
     // SUBA命令
@@ -262,21 +262,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x2512);
+        assert.deepEqual(instruction.toHex(), [0x2512]);
 
         // r1, adrパターン
         line = "SUBA GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x21100005);
+        assert.deepEqual(instruction.toHex(), [0x2110, 0x0005]);
 
         // r1, adr, xパターン
         line = "SUBA GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x21120005);
+        assert.deepEqual(instruction.toHex(), [0x2112, 0x0005]);
     });
 
     // SUBL命令
@@ -286,21 +286,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x2712);
+        assert.deepEqual(instruction.toHex(), [0x2712]);
 
         // r1, adrパターン
         line = "SUBL GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x23100005);
+        assert.deepEqual(instruction.toHex(), [0x2310, 0x0005]);
 
         // r1, adr, xパターン
         line = "SUBL GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x23120005);
+        assert.deepEqual(instruction.toHex(), [0x2312, 0x0005]);
     });
 
     // AND命令
@@ -310,21 +310,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x3412);
+        assert.deepEqual(instruction.toHex(), [0x3412]);
 
         // r1, adrパターン
         line = "AND GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x30100005);
+        assert.deepEqual(instruction.toHex(), [0x3010, 0x0005]);
 
         // r1, adr, xパターン
         line = "AND GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x30120005);
+        assert.deepEqual(instruction.toHex(), [0x3012, 0x0005]);
     });
 
     // OR命令
@@ -334,21 +334,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x3512);
+        assert.deepEqual(instruction.toHex(), [0x3512]);
 
         // r1, adrパターン
         line = "OR GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x31100005);
+        assert.deepEqual(instruction.toHex(), [0x3110, 0x0005]);
 
         // r1, adr, xパターン
         line = "OR GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x31120005);
+        assert.deepEqual(instruction.toHex(), [0x3112, 0x0005]);
     });
 
     // XOR命令
@@ -358,21 +358,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x3612);
+        assert.deepEqual(instruction.toHex(), [0x3612]);
 
         // r1, adrパターン
         line = "XOR GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x32100005);
+        assert.deepEqual(instruction.toHex(), [0x3210, 0x0005]);
 
         // r1, adr, xパターン
         line = "XOR GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x32120005);
+        assert.deepEqual(instruction.toHex(), [0x3212, 0x0005]);
     });
 
     // CPA命令
@@ -382,21 +382,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x4412);
+        assert.deepEqual(instruction.toHex(), [0x4412]);
 
         // r1, adrパターン
         line = "CPA GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x40100005);
+        assert.deepEqual(instruction.toHex(), [0x4010, 0x0005]);
 
         // r1, adr, xパターン
         line = "CPA GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x40120005);
+        assert.deepEqual(instruction.toHex(), [0x4012, 0x0005]);
     });
 
     // CPL命令
@@ -406,21 +406,21 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x4512);
+        assert.deepEqual(instruction.toHex(), [0x4512]);
 
         // r1, adrパターン
         line = "CPL GR1, 5"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x41100005);
+        assert.deepEqual(instruction.toHex(), [0x4110, 0x0005]);
 
         // r1, adr, xパターン
         line = "CPL GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x41120005);
+        assert.deepEqual(instruction.toHex(), [0x4112, 0x0005]);
     });
 
     // SLA命令
@@ -430,14 +430,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x50100005);
+        assert.deepEqual(instruction.toHex(), [0x5010, 0x0005]);
 
         // r1, adr, xパターン
         line = "SLA GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x50120005);
+        assert.deepEqual(instruction.toHex(), [0x5012, 0x0005]);
     });
 
     // SRA命令
@@ -447,14 +447,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x51100005);
+        assert.deepEqual(instruction.toHex(), [0x5110, 0x0005]);
 
         // r1, adr, xパターン
         line = "SRA GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x51120005);
+        assert.deepEqual(instruction.toHex(), [0x5112, 0x0005]);
     });
 
     // SLL命令
@@ -464,14 +464,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x52100005);
+        assert.deepEqual(instruction.toHex(), [0x5210, 0x0005]);
 
         // r1, adr, xパターン
         line = "SLL GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x52120005);
+        assert.deepEqual(instruction.toHex(), [0x5212, 0x0005]);
     });
 
     // SRL命令
@@ -481,14 +481,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x53100005);
+        assert.deepEqual(instruction.toHex(), [0x5310, 0x0005]);
 
         // r1, adr, xパターン
         line = "SRL GR1, 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x53120005);
+        assert.deepEqual(instruction.toHex(), [0x5312, 0x0005]);
     });
 
     // JPL命令
@@ -498,14 +498,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x65000005);
+        assert.deepEqual(instruction.toHex(), [0x6500, 0x0005]);
 
         // adr, xパターン
         line = "JPL 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x65020005);
+        assert.deepEqual(instruction.toHex(), [0x6502, 0x0005]);
     });
 
     // JMI命令
@@ -515,14 +515,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x61000005);
+        assert.deepEqual(instruction.toHex(), [0x6100, 0x0005]);
 
         // adr, xパターン
         line = "JMI 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x61020005);
+        assert.deepEqual(instruction.toHex(), [0x6102, 0x0005]);
     });
 
     // JNZ命令
@@ -532,14 +532,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x62000005);
+        assert.deepEqual(instruction.toHex(), [0x6200, 0x0005]);
 
         // adr, xパターン
         line = "JNZ 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x62020005);
+        assert.deepEqual(instruction.toHex(), [0x6202, 0x0005]);
     });
 
     // JZE命令
@@ -549,14 +549,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x63000005);
+        assert.deepEqual(instruction.toHex(), [0x6300, 0x0005]);
 
         // adr, xパターン
         line = "JZE 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x63020005);
+        assert.deepEqual(instruction.toHex(), [0x6302, 0x0005]);
     });
 
     // JOV命令
@@ -566,14 +566,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x66000005);
+        assert.deepEqual(instruction.toHex(), [0x6600, 0x0005]);
 
         // adr, xパターン
         line = "JOV 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x66020005);
+        assert.deepEqual(instruction.toHex(), [0x6602, 0x0005]);
     });
 
     // JUMP命令
@@ -583,14 +583,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x64000005);
+        assert.deepEqual(instruction.toHex(), [0x6400, 0x0005]);
 
         // adr, xパターン
         line = "JUMP 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x64020005);
+        assert.deepEqual(instruction.toHex(), [0x6402, 0x0005]);
     });
 
     // PUSH命令
@@ -600,14 +600,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x70000005);
+        assert.deepEqual(instruction.toHex(), [0x7000, 0x0005]);
 
         // adr, xパターン
         line = "PUSH 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x70020005);
+        assert.deepEqual(instruction.toHex(), [0x7002, 0x0005]);
     });
 
     // POP命令
@@ -617,7 +617,7 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x7110);;
+        assert.deepEqual(instruction.toHex(), [0x7110]);
     });
 
     // CALL命令
@@ -627,14 +627,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x80000005);
+        assert.deepEqual(instruction.toHex(), [0x8000, 0x0005]);
 
         // adr, xパターン
         line = "CALL 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x80020005);
+        assert.deepEqual(instruction.toHex(), [0x8002, 0x0005]);
     });
 
     // RET命令
@@ -644,7 +644,7 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x8100);
+        assert.deepEqual(instruction.toHex(), [0x8100]);
     });
 
     // SVC命令
@@ -654,14 +654,14 @@ suite("Instruction test", () => {
         let instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0xF0000005);
+        assert.deepEqual(instruction.toHex(), [0xF000, 0x0005]);
 
         // adr, xパターン
         line = "SVC 5, GR2"
         instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0xF0020005);
+        assert.deepEqual(instruction.toHex(), [0xF002, 0x0005]);
     });
 
     // NOP命令
@@ -671,6 +671,6 @@ suite("Instruction test", () => {
         const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
-        assert.equal(instruction.toHex(), 0x0000);
+        assert.deepEqual(instruction.toHex(), [0x0000]);
     });
 });

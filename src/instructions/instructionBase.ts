@@ -67,11 +67,11 @@ export class InstructionBase {
         return [this._label, this._instructionName, this._r1, this._r2, this._address].join("   ");
     }
 
-    public toHex(): number | number[] {
+    public toHex(): Array<number> {
         if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
 
-        // .comファイルに還元されない命令は-1を返す
-        if (this._code == undefined) return -1;
+        // .comファイルに還元されない命令は空配列を返す
+        if (this._code == undefined) return [];
 
         let hex = this._code;
 
@@ -84,7 +84,7 @@ export class InstructionBase {
         if (this._address != undefined) {
             return [hex, this._address as number];
         } else {
-            return hex;
+            return [hex];
         }
     }
 
