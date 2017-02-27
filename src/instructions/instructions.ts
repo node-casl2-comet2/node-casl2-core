@@ -76,7 +76,7 @@ export class Instructions {
                 // アドレス無し
                 if (!(result.r1 && result.r2)) throw new ArgumentError(lineNumber);
                 // アドレス無しの方の命令コードはアドレス有りのものに4加えたものになる
-                const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst) + 4, result.label, result.r1, result.r2);
+                const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst)! + 4, result.label, result.r1, result.r2);
                 return instBase;
             }
         } else if (inst.match(startLikeInstRegex)) {
@@ -132,9 +132,10 @@ export class Instructions {
     }
 
     private static createDS(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
-        if (result.instruction != "DS") throw new Error();
+        const { instruction, wordCount } = result;
+        if (instruction != "DS") throw new Error();
+        if (wordCount === undefined) throw new Error();
 
-        const wordCount = result.wordCount;
         if (wordCount == 0) {
             // 語数が0の場合領域は確保しないがラベルは有効である
             // OLBL命令: ラベル名だけ有効でバイト長は0

@@ -21,7 +21,10 @@ export class LexerResult {
         r2: GR | undefined,
         address: number | string | undefined,
         comment: string | undefined,
+
+        /** DS命令の語数 */
         wordCount?: number,
+
         consts?: Array<number | string>,
         lengthAddress?: number | string) {
         this._label = label;
@@ -62,6 +65,7 @@ export class LexerResult {
         return this._address;
     }
 
+    /** DS命令の語数 */
     public get wordCount() {
         return this._wordCount;
     }
