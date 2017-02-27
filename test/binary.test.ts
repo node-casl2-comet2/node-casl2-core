@@ -17,7 +17,7 @@ function compile(casFilePath: string, compiler?: Casl2) {
 
     assert(result.success);
 
-    const {hexes} = result;
+    const { hexes } = result;
     return result.hexes;
 }
 
@@ -31,7 +31,7 @@ function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) 
 suite("binary test", () => {
     test("test", () => {
         const folders = [
-            "in", "mix", "other", "out", "rpop", "rpush", "start"
+            "ds", "in", "mix", "other", "out", "rpop", "rpush", "start"
         ];
 
         for (const dir of folders) {

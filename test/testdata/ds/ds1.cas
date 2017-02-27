@@ -1,0 +1,12 @@
+; 語数0(ラベル有り)
+; 語数0でもラベルは有効である
+
+CASL    START
+        LAD     GR1, 2
+        ST      GR1, L1  ; L1とL2は同じ番地を指すはず
+        LD      GR2, L2
+        ADDA    GR1, GR2
+        RET
+L1      DS      0
+L2      DS      1
+        END

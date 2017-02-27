@@ -68,27 +68,6 @@ suite("Instruction test", () => {
         line = "DS 0";
         const olbl = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         assert(olbl.toHex().length == 0);
-
-        // 語数0(ラベル有り)
-        // 語数0でもラベルは有効である
-        const lines = [
-            "CASL    START",
-            "        LAD     GR1, 2",
-            "        ST      GR1, L1",  // L1とL2は同じ番地を指すはず
-            "        LD      GR2, L2",
-            "        ADDA    GR1, GR2",
-            "        RET",
-            "L1      DS      0",
-            "L2      DS      1",
-            "        END"
-        ];
-
-        const casl2 = new Casl2();
-        const result = casl2.compile(lines);
-
-        const st = result.instructions[2];
-        const ld = result.instructions[3];
-        assert(st.address as number == ld.address as number);
     });
 
     // DC命令

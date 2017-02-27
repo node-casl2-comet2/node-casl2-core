@@ -24,6 +24,10 @@ suite("Lexer test", () => {
         result = splitToTokens(line, 1) as Array<string>;
         assert.deepEqual(result, ["LAD", "GR1", "2"]);
 
+        line = "L1 DS 0";
+        result = splitToTokens(line, 1) as Array<string>;
+        assert.deepEqual(result, ["L1", "DS", "0"]);
+
         line = "END";
         result = splitToTokens(line, 1) as Array<string>;
         assert.deepEqual(result, ["END"]);

@@ -40,6 +40,9 @@ export class Casl2 {
             const line = lines[i];
             const lineNumber = i + 1;
 
+            // 空行なら無視する
+            if (line.trim() === "") continue;
+
             const result = lexer.tokenize(line, i);
             if (result instanceof CompileError) {
                 errors.push(result);
