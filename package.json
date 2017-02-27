@@ -1,8 +1,9 @@
 {
     "name": "@maxfield/node-casl2-core",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "",
     "main": "out/src/index.js",
+    "types": "out/src/index.d.ts",
     "author": "Maxfield Walker",
     "license": "MIT",
     "scripts": {
@@ -10,7 +11,8 @@
         "watch": "node ./node_modules/typescript/bin/tsc -w -p .",
         "run": "npm run compile && node ./out/src/app.js",
         "test": "npm run compile && node ./node_modules/mocha/bin/mocha --ui tdd ./out/test/**/*.js",
-        "coverage": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report none -- --ui tdd ./out/test/**/*.js"
+        "coverage": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report none -- --ui tdd ./out/test/**/*.js",
+        "prepublish": "npm run compile"
     },
     "devDependencies": {
         "typescript": "^2.0.3",
