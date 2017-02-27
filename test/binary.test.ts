@@ -5,12 +5,15 @@ import { binaryRead } from "./binaryReader";
 import * as path from "path";
 import { Casl2 } from "../src/casl2";
 import { read } from "./reader";
+import * as fs from "fs";
 
-const casl2 = new Casl2();
+const defaultCompiler = new Casl2();
 
-function compile(casFilePath: string) {
+function compile(casFilePath: string, compiler?: Casl2) {
     const lines = read(casFilePath);
-    const result = casl2.compile(lines);
+    const compilerToUse = compiler || defaultCompiler;
+
+    const result = compilerToUse.compile(lines);
 
     assert(result.success);
 
@@ -18,14 +21,42 @@ function compile(casFilePath: string) {
     return result.hexes;
 }
 
+function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) {
+    const expected = binaryRead(comFilePath);
+    const actual = compile(casFilePath, compiler);
+
+    assert.deepEqual(expected, actual);
+}
+
 suite("binary test", () => {
     test("test", () => {
-        const casFile = "./test/testdata/start/start1.cas";
-        const comFile = "./test/testdata/start/start1.com";
+        const folders = [
+            "in", "mix", "other", "out", "rpop", "rpush", "start"
+        ];
 
-        const expected = binaryRead(comFile);
-        const actual = compile(casFile);
+        for (const dir of folders) {
+            const folder = path.join("./test/testdata/", dir);
+            const files = fs.readdirSync(folder);
+            const casFiles = files.filter(x => x.match(/.*\.cas$/));
 
-        assert.deepEqual(expected, actual);
+            for (const casFile of casFiles) {
+                const casFilePath = path.join(folder, casFile);
+
+                const comFile = casFile.replace(".cas", ".com");
+                const comFilePath = path.join(folder, comFile);
+
+                binaryTest(casFilePath, comFilePath);
+            }
+        }
+    });
+
+    test("GR8 support test", () => {
+        const casFilePath = "./test/testdata/options/gr8.cas";
+        const comFilePath = "./test/testdata/options/gr8.com";
+        const compiler = new Casl2({
+            useGR8: true
+        });
+
+        binaryTest(casFilePath, comFilePath, compiler);
     });
 });

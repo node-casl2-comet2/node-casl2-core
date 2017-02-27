@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es6",
-		"outDir": "out",
+		"outDir": "dist",
 		"moduleResolution": "node",
 		"inlineSourceMap": true,
 		"noImplicitAny": true,
@@ -17,6 +17,6 @@
 	},
 	"exclude": [
 		"node_modules",
-		"out"
+		"dist"
 	]
 }

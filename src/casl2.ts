@@ -12,7 +12,12 @@ import { Casl2CompileOption } from "./compileOption";
 import { LexerOption } from "./casl2/lexerOption";
 
 export class Casl2 {
-    public compile(lines: Array<string>, compileOption?: Casl2CompileOption) {
+
+    constructor(private _compileOption?: Casl2CompileOption) {
+
+    }
+
+    public compile(lines: Array<string>) {
         const errors: Array<CompileError> = [];
         const instructions: Array<InstructionBase> = [];
 
@@ -21,9 +26,9 @@ export class Casl2 {
         // フェーズ2: =で宣言された定数を配置する
         // フェーズ3: アドレス解決フェーズ
         let lexerOption: LexerOption | undefined = undefined;
-        if (compileOption) {
+        if (this._compileOption) {
             lexerOption = {
-                useGR8: compileOption.useGR8
+                useGR8: this._compileOption.useGR8
             };
         }
 
