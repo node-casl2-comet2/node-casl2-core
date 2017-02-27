@@ -3,46 +3,28 @@
 import { GR } from "../comet2/gr";
 
 export class LexerResult {
-    private _label: string | undefined;
-    private _instruction: string | undefined;
-    private _r1: GR | undefined;
-    private _r2: GR | undefined;
-    private _address: number | string | undefined;
-    private _comment: string | undefined;
     private _isCommentLine: boolean;
-    private _wordCount: number | undefined;
-    private _consts: Array<number | string> | undefined;
-    private _lengthAddress: number | string | undefined;
 
     constructor(
-        label: string | undefined,
-        instruction: string | undefined,
-        r1: GR | undefined,
-        r2: GR | undefined,
-        address: number | string | undefined,
-        comment: string | undefined,
+        private _label: string | undefined,
+        private _instruction: string | undefined,
+        private _r1: GR | undefined,
+        private _r2: GR | undefined,
+        private _address: number | string | undefined,
+        private _comment: string | undefined,
 
         /** DS命令の語数 */
-        wordCount?: number,
+        private _wordCount?: number,
 
-        consts?: Array<number | string>,
-        lengthAddress?: number | string) {
-        this._label = label;
-        this._instruction = instruction;
-        this._r1 = r1;
-        this._r2 = r2;
-        this._address = address;
-        this._comment = comment;
-        this._wordCount = wordCount;
-        this._consts = consts;
-        this._lengthAddress = lengthAddress;
+        private _consts?: Array<number | string>,
+        private _lengthAddress?: number | string) {
 
-        this._isCommentLine = label == undefined &&
-            instruction == undefined &&
-            r1 == undefined &&
-            r2 == undefined &&
-            address == undefined &&
-            comment != undefined;
+        this._isCommentLine = this._label == undefined &&
+            this._instruction == undefined &&
+            this._r1 == undefined &&
+            this._r2 == undefined &&
+            this._address == undefined &&
+            this._comment != undefined;
     }
 
     public get label() {
