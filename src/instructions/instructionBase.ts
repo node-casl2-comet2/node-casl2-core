@@ -158,10 +158,10 @@ export class InstructionBase implements Instruction {
         this._address = label;
     }
 
+    // 参考URL: http://www.officedaytime.com/dcasl2/pguide/qref.html
     private static byteLengthMap = new Map<number, number>([
-        // TODO: コメントに対応を書く
-        [0x14, 2],  // LD r1, r2
-        [0x10, 4],  // LD r, adr[, x]
+        [0x14, 2],
+        [0x10, 4],
         [0x11, 4],
         [0x12, 4],
         [0x24, 2],
