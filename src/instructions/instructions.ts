@@ -4,6 +4,7 @@ import { InstructionBase } from "./instructionBase";
 import { MDC } from "./mdc";
 import { IN } from "./in";
 import { OUT } from "./out";
+import { OLBL } from "./olbl";
 import { GR } from "../comet2/gr";
 import { LexerResult } from "../casl2/lexerResult";
 import { CompileError } from "../errors/compileError";
@@ -138,9 +139,8 @@ export class Instructions {
         if (wordCount == 0) {
             // 語数が0の場合領域は確保しないがラベルは有効である
             // OLBL命令: ラベル名だけ有効でバイト長は0
-            // TODO: OLBLは勝手に追加した命令なので別クラスにしたほうがいいかも
-            const instBase = new InstructionBase("OLBL", undefined, result.label);
-            return instBase;
+            const olbl = new OLBL(result.label);
+            return olbl;
         } else {
             // 語数と同じ数のNOP命令に置き換える
             const nops = new Array<InstructionBase>();
