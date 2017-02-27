@@ -11,7 +11,9 @@
 		"noImplicitThis": true,
 		"forceConsistentCasingInFileNames": true,
 		"removeComments": false,
-		"preserveConstEnums": true
+		"preserveConstEnums": true,
+		// 型定義ファイルを生成する
+		"declaration": true
 	},
 	"exclude": [
 		"node_modules"
