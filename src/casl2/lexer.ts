@@ -278,8 +278,12 @@ export class Lexer {
 
         // アドレスはリテラルかも
         // 1文字目が'='である
-        // TODO: 等号の後には10進か16進か文字定数しかこないのでここでチェック
-        if (str.charAt(0) == "=") return str;
+        if (str.charAt(0) == "=") {
+            const rest = str.slice(1);
+            if (!(this.isDecimal(rest) || this.isDecimal(rest))) return undefined;
+
+            return str;
+        }
 
         // アドレスは16進数かも
         // 16進定数は#で始まる数字の連続である
@@ -299,5 +303,17 @@ export class Lexer {
         } else {
             return address;
         }
+    }
+
+    private isDecimal(str: string) {
+        const decimal = parseInt(str, 10);
+        return !isNaN(decimal);
+    }
+
+    private isHex(str: string) {
+        if (str.charAt(0) !== "#") return false;
+
+        const hex = parseInt(str.slice(1), 16);
+        return !isNaN(hex);
     }
 }
