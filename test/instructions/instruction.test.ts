@@ -118,6 +118,11 @@ suite("Instruction test", () => {
         assert.deepEqual(mdcs[1].toHex(), [0x0042]);
         assert.deepEqual(mdcs[2].toHex(), [0x0043]);
 
+        // JIS X 0201の範囲外の文字列定数
+        line = "DC 'あいう'";
+        const error = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1);
+        assert(error instanceof CompileError);
+
         // ラベル
         line = "DC L0";
         dc = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;

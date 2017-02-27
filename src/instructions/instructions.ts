@@ -9,6 +9,7 @@ import { LexerResult } from "../casl2/lexerResult";
 import { CompileError } from "../errors/compileError";
 import { ArgumentError } from "../errors/errors";
 import { escapeStringConstant } from "../helpers/escapeStringConstant";
+import { isInRange } from "../helpers/jisx0201";
 
 export class Instructions {
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
@@ -166,6 +167,10 @@ export class Instructions {
             // シングルクォーテーションをエスケープする
             const escaped = escapeStringConstant(str);
             if (escaped == undefined) return new CompileError(lineNumber, "Single quotes are not collectly escaped.");
+
+            // 文字列定数がJIS X 0201の範囲内かチェックする
+            const inRange = isInRange(escaped);
+            if (!inRange) return new CompileError(lineNumber, "文字列定数にJIS X 0201で表現出来ない文字が含まれています");
 
             return escaped;
         }
