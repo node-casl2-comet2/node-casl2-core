@@ -119,7 +119,12 @@ export class Casl2 {
         }
 
         // アドレス解決する
-        instructions.forEach(inst => inst.resolveAddress(labelMap));
+        for (const inst of instructions) {
+            const error = inst.resolveAddress(labelMap);
+            if (error) {
+                errors.push(error);
+            }
+        }
 
 
         if (errors.length == 0) {

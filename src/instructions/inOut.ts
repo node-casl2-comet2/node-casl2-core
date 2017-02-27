@@ -2,6 +2,7 @@
 
 import { InstructionBase } from "./instructionBase";
 import { LabelMap } from "../data/labelMap";
+import { CompileError } from "../errors/compileError";
 
 export class INOUT extends InstructionBase {
     protected _lengthAddress: number | string;
@@ -19,19 +20,21 @@ export class INOUT extends InstructionBase {
         return 6;
     }
 
-    public resolveAddress(labelMap: LabelMap) {
-        if (this.isConfirmed) return;
+    public resolveAddress(labelMap: LabelMap): CompileError | undefined {
+        if (this.isConfirmed) return undefined;
 
         if (typeof this.address != "number") {
             const resolvedAddress = labelMap.get(this.address as string);
-            if (resolvedAddress == undefined) throw new Error("undeclared label: " + this.address as string);
+            if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + this.address as string);
             this.setAddress(resolvedAddress);
         }
         if (typeof this._lengthAddress != "number") {
             const resolvedAddress = labelMap.get(this._lengthAddress as string);
-            if (resolvedAddress == undefined) throw new Error("undeclared label: " + this.address as string);
+            if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + this.address as string);
             this._lengthAddress = resolvedAddress;
         }
+
+        return undefined;
     }
 
     private get isConfirmed() {

@@ -2,8 +2,9 @@
 
 import { GR } from "../comet2/gr";
 import { LabelMap } from "../data/labelMap";
+import { CompileError } from "../errors/compileError";
 
-export class InstructionBase {
+export class InstructionBase implements Instruction {
     private _lineNumber: number;
     private _instructionName: string;
     private _isConfirmed: boolean;
@@ -40,7 +41,7 @@ export class InstructionBase {
             this._isConfirmed = true;
         }
 
-        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code) ! : 0;
+        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code)! : 0;
     }
 
     public get instructionName() {
@@ -88,14 +89,19 @@ export class InstructionBase {
         }
     }
 
-    public resolveAddress(labelMap: LabelMap) {
-        if (this._isConfirmed) return;
+    /**
+     * ラベルマップを使ってラベルを実際のアドレスに解決します
+     */
+    public resolveAddress(labelMap: LabelMap): CompileError | undefined {
+        if (this._isConfirmed) return undefined;
 
         const resolvedAddress = labelMap.get(this._address as string);
-        // TODO: コンパイルエラーにする
-        if (resolvedAddress == undefined) throw new Error("undeclared label: " + this._address as string);
+        if (resolvedAddress == undefined) return new CompileError(this._lineNumber, "undeclared label: " + this._address as string);
+
         this._address = resolvedAddress;
         this._isConfirmed = true;
+
+        return undefined;
     }
 
     public get label() {
@@ -193,4 +199,8 @@ export class InstructionBase {
         [0xF0, 4],
         [0x00, 2]
     ]);
+}
+
+export interface Instruction {
+    resolveAddress(labelMap: LabelMap): CompileError | undefined;
 }
