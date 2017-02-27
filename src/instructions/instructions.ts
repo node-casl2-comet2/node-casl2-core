@@ -146,7 +146,7 @@ export class Instructions {
             return escaped;
         }
 
-        const splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string): CompileError | null => {
+        const splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string): CompileError | undefined => {
             const escaped = validateStringConstant(strLiteral);
             if (escaped instanceof CompileError) return escaped;
 
@@ -159,7 +159,7 @@ export class Instructions {
                 mdcs.push(mdc);
             }
 
-            return null;
+            return undefined;
         }
 
         if (result.consts.length == 1) {
