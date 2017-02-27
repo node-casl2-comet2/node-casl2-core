@@ -1,8 +1,9 @@
 "use strict";
 
-// TODO: テストを作る
-
-export function convert(ch: string): number {
+/**
+ * 一文字を文字コードに変換します
+ */
+export function convertToCharCode(ch: string): number {
     if (ch.length != 1) throw new Error();
 
     const code = map.get(ch);
@@ -13,7 +14,7 @@ export function convert(ch: string): number {
 /**
  * JIS X 0201でサポートされる文字列かどうかを返します
  */
-export function isInRange(str: string): boolean {
+export function isStrInRange(str: string): boolean {
     for (let i = 0; i < str.length; i++) {
         const ch = str.charAt(i);
         const code = map.get(ch);
@@ -23,7 +24,6 @@ export function isInRange(str: string): boolean {
     return true;
 }
 
-// TODO: 文字コード表を完成させる
 const map = new Map<string, number>([
     ["!", 0x21], ["\"", 0x22], ["#", 0x23], ["$", 0x24], ["%", 0x25], ["&", 0x26], ["'", 0x27], ["(", 0x28], [")", 0x29], ["*", 0x2A], ["+", 0x2B], [",", 0x2C], ["-", 0x2D], [".", 0x2E], ["/", 0x2F],
     ["0", 0x30], ["1", 0x31], ["2", 0x32], ["3", 0x33], ["4", 0x34], ["5", 0x35], ["6", 0x36], ["7", 0x37], ["8", 0x38], ["9", 0x39],
