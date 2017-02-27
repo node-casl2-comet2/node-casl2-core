@@ -137,6 +137,21 @@ export class Casl2 {
         // アドレス解決する
         instructions.forEach(inst => inst.resolveAddress(labelMap));
 
-        return new CompileResult(instructions, errors, labelMap);
+
+        if (errors.length == 0) {
+            // コンパイル成功の場合
+            const hex = instructions.map(x => x.toHex());
+            const flatten = [].concat.apply([], hex) as Array<number>;
+            const hexes = flatten.filter(x => x != -1);
+
+            const firstStartInstLabel = instructions[0].label as string;
+
+            // 先頭16バイト分に実行開始番地を埋め込む
+            hexes.unshift(labelMap.get(firstStartInstLabel) as number, 0, 0, 0, 0, 0, 0, 0);
+
+            return new CompileResult(instructions, hexes, errors, labelMap);
+        } else {
+            return new CompileResult(instructions, [], errors, labelMap);
+        }
     }
 }

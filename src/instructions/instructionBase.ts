@@ -82,13 +82,10 @@ export class InstructionBase {
         hex = hex | gr;
 
         if (this._address != undefined) {
-            // 16進数で4桁左にずらす
-            // TODO: シフト演算を使うと32ビット扱いになってオーバーフローしてしまう
-            //       シフト演算でうまくやる方法はないか?
-            hex = hex * 65536 + (this._address as number);
+            return [hex, this._address as number];
+        } else {
+            return hex;
         }
-
-        return hex;
     }
 
     public resolveAddress(labelMap: LabelMap) {

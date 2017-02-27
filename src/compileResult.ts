@@ -5,21 +5,19 @@ import { InstructionBase } from "./instructions/instructionBase";
 import { LabelMap } from "./data/labelMap";
 
 export class CompileResult {
-    private _errors: Array<CompileError>;
-    private _instructions: Array<InstructionBase>;
-    private _success: boolean;
-    private _labelMap: LabelMap;
-
-    constructor(instructions: Array<InstructionBase>, errors: Array<CompileError>, labelMap: LabelMap) {
-        this._instructions = instructions;
-        this._errors = errors;
-        this._labelMap = labelMap;
-
-        this._success = errors.length == 0;
+    constructor(
+        private _instructions: Array<InstructionBase>,
+        private _hexes: Array<number>,
+        private _errors: Array<CompileError>,
+        private _labelMap: LabelMap) {
     }
 
     public get instructions() {
         return this._instructions;
+    }
+
+    public get hexes() {
+        return this._hexes;
     }
 
     public get errors() {
@@ -27,7 +25,7 @@ export class CompileResult {
     }
 
     public get success() {
-        return this._success;
+        return this._errors.length == 0;
     }
 
     public get labelMap() {
