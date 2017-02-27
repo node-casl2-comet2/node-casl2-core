@@ -1,4 +1,10 @@
 {
+    "name": "@maxfield/node-casl2-core",
+    "version": "0.0.1",
+    "description": "",
+    "main": "out/src/index.js",
+    "author": "Maxfield Walker",
+    "license": "MIT",
     "scripts": {
         "compile": "node ./node_modules/typescript/bin/tsc -p .",
         "watch": "node ./node_modules/typescript/bin/tsc -w -p .",
@@ -9,7 +15,7 @@
     "devDependencies": {
         "typescript": "^2.0.3",
         "mocha": "^2.3.3",
-        "istanbul": "^0.4.5", 
+        "istanbul": "^0.4.5",
         "@types/node": "^6.0.40",
         "@types/mocha": "^2.2.32"
     }
