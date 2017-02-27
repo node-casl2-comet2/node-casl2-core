@@ -127,9 +127,31 @@ suite("Instruction test", () => {
         assert.deepEqual(dc.toHex(), [0x0002]);
     });
 
-    // TODO: IN命令
+    test("IN test", () => {
+        const line = "IN BUF, LEN";
+        const instruction = Instructions.createIN(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
 
-    // TODO: OUT命令
+        const labelMap = new LabelMap();
+        labelMap.add("BUF", 0x0008);
+        labelMap.add("LEN", 0x0050);
+        instruction.resolveAddress(labelMap);
+
+        assert.deepEqual(instruction.toHex(), [0x9000, 0x0008, 0x0050]);
+    });
+
+    test("OUT test", () => {
+        const line = "OUT BUF, LEN";
+        const instruction = Instructions.createOUT(Lexer.tokenize(line, 1) as LexerResult, 1);
+        if (instruction instanceof CompileError) throw new Error();
+
+        const labelMap = new LabelMap();
+        labelMap.add("BUF", 0x0008);
+        labelMap.add("LEN", 0x0050);
+        instruction.resolveAddress(labelMap);
+
+        assert.deepEqual(instruction.toHex(), [0x9100, 0x0008, 0x0050]);
+    });
 
     // RPUSH命令
     test("RPUSH test", () => {
