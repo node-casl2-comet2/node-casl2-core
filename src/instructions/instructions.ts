@@ -13,8 +13,6 @@ import { isStrInRange } from "../helpers/jisx0201";
 
 export class Instructions {
     public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
-        // TODO: IN | OUT の分類を決める
-
         // 引数を取らない命令(5個)
         const nopLikeInstRegex = /\b(END|RPUSH|RPOP|RET|NOP)\b/;
 
