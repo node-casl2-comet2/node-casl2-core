@@ -4,38 +4,41 @@
  * コンパイルエラーの基底クラス
  */
 export class CompileError {
-    // エラーの行番号
-    private _lineNumber: number;
-    // エラーメッセージ
     private _message: string;
-    // エラーコード
-    private _errorCode: number | undefined;
-    // エラーの始まりのインデックス
-    private _startIndex: number | undefined;
-    // エラーの終わりのインデックス
-    private _endIndex: number | undefined;
 
-    // TODO: lineNumberを第一引数にし，messageをoptionalにする
-    constructor(lineNumber: number, message: string, errorCode?: number, startIndex?: number, endIndex?: number) {
-        this._lineNumber = lineNumber;
-        this._message = message;
-        this._errorCode = errorCode;
-        this._startIndex = startIndex;
-        this._endIndex = endIndex;
+    constructor(
+        private _lineNumber: number,
+        message?: string,
+        private _errorCode?: number,
+        private _startIndex?: number,
+        private _endIndex?: number) {
+        this._message = message || "Compile error";
     }
 
+    /**
+     * エラーの行番号
+     */
     public get lineNumber() {
         return this._lineNumber;
     }
 
+    /**
+     * エラーメッセージ
+     */
     public get message() {
         return this._message;
     }
 
+    /**
+     * エラーの始まりのインデックス
+     */
     public get startIndex() {
         return this._startIndex;
     }
 
+    /**
+     * エラーの終わりのインデックス
+     */
     public get endIndex() {
         return this._endIndex;
     }
