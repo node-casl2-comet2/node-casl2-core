@@ -6,6 +6,43 @@ import { InvalidInstructionError, InvalidLabelError, ArgumentError } from "../er
 import { LexerResult } from "./lexerResult";
 import { LexerOption } from "./lexerOption";
 
+export function splitToTokens(line: string, lineNumber: number): Array<string> | CompileError {
+    const trim = line.trim();
+    const result: Array<string> = [];
+
+    const compileError = () => new CompileError(lineNumber, "cannot split to tokens");
+
+    let arg = "";
+
+    // ラベルまたは命令をキャプチャ
+    const m1 = trim.match(/^([^\s,]+)(.*)$/);
+    if (!m1) return compileError();
+    result.push(m1[1]);
+
+    const rest = m1[2].trim();
+    if (rest.startsWith(",")) return compileError();
+
+    // 命令をキャプチャ
+    const m2 = rest.match(/^([^\s,]+)\s+(.*)$/);
+    if (m2) {
+        result.push(m2[1]);
+        const rest = m2[2].trim();
+        arg = rest;
+    } else {
+        arg = rest;
+    }
+
+    if (arg.length > 0) {
+        // 残りは引数部分なのでコンマ+スペースの連続で分割する
+        const split = arg.split(/,\s+/);
+
+        split.forEach(x => result.push(x));
+    }
+
+    return result;
+}
+
+
 export class Lexer {
     private _lexerOption?: LexerOption;
     private static _instance: Lexer = new Lexer();
@@ -29,21 +66,21 @@ export class Lexer {
         let consts: Array<number | string> | undefined;
         let lengthAddress: number | string | undefined;
 
-        let str = line;
+        let lineCommentEliminated = line;
         const semicolonIndex = line.indexOf(";");
         if (semicolonIndex >= 0) {
 
             comment = line.slice(semicolonIndex);
-            str = line.substring(0, semicolonIndex);
-            if (str.match(/^\s*$/)) {
+            lineCommentEliminated = line.substring(0, semicolonIndex);
+            if (lineCommentEliminated.match(/^\s*$/)) {
                 // コメント行の場合
                 return new LexerResult(undefined, undefined, undefined, undefined, undefined, comment);
             }
         }
 
-        // TODO: コンマの区切りは引数の間にのみで使えるので
-        //       ラベルと命令の間には使えないようにする
-        const split = str.trim().split(/\s+|,\s+/);
+        const split = splitToTokens(lineCommentEliminated, lineNumber);
+        if (split instanceof CompileError) return split;
+
         let index = 0;
         const first = split[index];
         if (this.isInstruction(first)) {
