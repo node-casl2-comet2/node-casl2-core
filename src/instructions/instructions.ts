@@ -87,10 +87,51 @@ export class Instructions {
             return instBase;
         }
 
+        switch (inst) {
+            case "IN":
+                return Instructions.createIN(result, lineNumber);
+            case "OUT":
+                return Instructions.createOUT(result, lineNumber);
+        }
+
         throw new Error("Unknown instruction");
     }
 
-    public static createDS(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
+    private static createIN(result: LexerResult, lineNumber: number): InstructionBase {
+        if (result.instruction != "IN") throw new Error();
+        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
+
+        const out = new IN(result.label, result.address, result.lengthAddress);
+
+        return out;
+    }
+
+    private static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
+        if (result.instruction != "OUT") throw new Error();
+        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
+
+        const out = new OUT(result.label, result.address, result.lengthAddress);
+
+        return out;
+    }
+
+
+    // DS命令とDC命令だけInstructionBaseの配列を返す場合があるので別にしている
+
+    public static createDSDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
+        const inst = result.instruction!;
+
+        switch (inst) {
+            case "DS":
+                return Instructions.createDS(result, lineNumber);
+            case "DC":
+                return Instructions.createDC(result, lineNumber);
+        }
+
+        throw new Error(`"${inst} is not DS or DC"`);
+    }
+
+    private static createDS(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
         if (result.instruction != "DS") throw new Error();
 
         const wordCount = result.wordCount;
@@ -111,25 +152,7 @@ export class Instructions {
         }
     }
 
-    public static createIN(result: LexerResult, lineNumber: number): InstructionBase {
-        if (result.instruction != "IN") throw new Error();
-        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
-
-        const out = new IN(result.label, result.address, result.lengthAddress);
-
-        return out;
-    }
-
-    public static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
-        if (result.instruction != "OUT") throw new Error();
-        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
-
-        const out = new OUT(result.label, result.address, result.lengthAddress);
-
-        return out;
-    }
-
-    public static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
+    private static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
         if (result.instruction != "DC") throw new Error();
 
         if (result.consts == undefined) throw new Error();

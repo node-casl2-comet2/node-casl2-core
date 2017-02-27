@@ -47,41 +47,20 @@ export class Casl2 {
                 if (result.isCommentLine) {
                     // コメント行なので無視する
                 } else {
-                    if (result.instruction == "DS") {
-                        const ds = Instructions.createDS(result, lineNumber);
-                        if (ds instanceof InstructionBase) {
-                            instructions.push(ds);
-                        } else {
-                            ds.forEach(nop => instructions.push(nop));
-                        }
+                    const dsOrDc = result.instruction === "DS" || result.instruction === "DC";
+                    const inst = dsOrDc
+                        ? Instructions.createDSDC(result, lineNumber)
+                        : Instructions.create(result, lineNumber);
+
+                    if (inst instanceof CompileError) {
+                        // コンパイルエラー
+                        errors.push(inst);
                     }
-                    else if (result.instruction == "DC") {
-                        const dc = Instructions.createDC(result, lineNumber);
-                        if (dc instanceof CompileError) {
-                            errors.push(dc);
-                        } else if (dc instanceof InstructionBase) {
-                            instructions.push(dc);
-                        } else {
-                            dc.forEach(mdc => instructions.push(mdc));
-                        }
-                    }
-                    else if (result.instruction == "IN") {
-                        const IN = Instructions.createIN(result, lineNumber);
-                        instructions.push(IN);
-                    }
-                    else if (result.instruction == "OUT") {
-                        const out = Instructions.createOUT(result, lineNumber);
-                        instructions.push(out);
+                    else if (inst instanceof InstructionBase) {
+                        instructions.push(inst);
                     }
                     else {
-                        const inst = Instructions.create(result, lineNumber);
-                        if (inst instanceof InstructionBase) {
-                            instructions.push(inst);
-                        }
-                        else {
-                            // コンパイルエラー
-                            errors.push(inst);
-                        }
+                        inst.forEach(x => instructions.push(x));
                     }
                 }
             }
@@ -98,7 +77,7 @@ export class Casl2 {
 
                 // リテラルをオペランドとするDC命令を生成する
                 const lexerResult = new LexerResult(label, "DC", undefined, undefined, undefined, undefined, undefined, [literal]);
-                const dc = Instructions.createDC(lexerResult, inst.lineNumber);
+                const dc = Instructions.createDSDC(lexerResult, inst.lineNumber);
 
                 // 生成したDC命令を追加する
                 if (dc instanceof CompileError) {

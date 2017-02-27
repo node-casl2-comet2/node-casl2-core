@@ -49,7 +49,7 @@ suite("Instruction test", () => {
     test("DS test", () => {
         // ラベル無し
         let line = "DS  3";
-        let ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        let ds = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(ds.length == 3);
         assert(ds[0].instructionName == "NOP" && ds[0].label == undefined);
         assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
@@ -57,7 +57,7 @@ suite("Instruction test", () => {
 
         // ラベル有り
         line = "CONST DS 3";
-        ds = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        ds = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(ds.length == 3);
         assert(ds[0].instructionName == "NOP" && ds[0].label == "CONST");
         assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
@@ -66,7 +66,7 @@ suite("Instruction test", () => {
         // 語数0(ラベル無し)
         // 領域は確保されず何もしないのと同じ
         line = "DS 0";
-        const olbl = Instructions.createDS(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        const olbl = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         assert(olbl.toHex().length == 0);
 
         // 語数0(ラベル有り)
@@ -95,24 +95,24 @@ suite("Instruction test", () => {
     test("DC test", () => {
         // 10進定数
         let line = "DC  3";
-        let dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        let dc = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         assert.deepEqual(dc.toHex(), [0x0003]);
 
         // 16進定数
         line = "DC #00AB";
-        dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        dc = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         assert.deepEqual(dc.toHex(), [0x00AB]);
 
         // 文字列定数(1文字)
         line = "DC 'A'";
-        let mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        let mdcs = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(mdcs.length == 1);
         // 'A'のアスキーコードは0x41である
         assert.deepEqual(mdcs[0].toHex(), [0x0041]);
 
         // 文字列定数(2文字以上)
         line = "DC 'ABC'"
-        mdcs = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
+        mdcs = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as Array<InstructionBase>;
         assert(mdcs.length == 3);
         assert.deepEqual(mdcs[0].toHex(), [0x0041]);
         assert.deepEqual(mdcs[1].toHex(), [0x0042]);
@@ -120,7 +120,7 @@ suite("Instruction test", () => {
 
         // ラベル
         line = "DC L0";
-        dc = Instructions.createDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
+        dc = Instructions.createDSDC(Lexer.tokenize(line, 1) as LexerResult, 1) as InstructionBase;
         // アドレス解決をする
         const map = new LabelMap([["L0", 0x0002]]);
         dc.resolveAddress(map);
@@ -129,7 +129,7 @@ suite("Instruction test", () => {
 
     test("IN test", () => {
         const line = "IN BUF, LEN";
-        const instruction = Instructions.createIN(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         const labelMap = new LabelMap();
@@ -142,7 +142,7 @@ suite("Instruction test", () => {
 
     test("OUT test", () => {
         const line = "OUT BUF, LEN";
-        const instruction = Instructions.createOUT(Lexer.tokenize(line, 1) as LexerResult, 1);
+        const instruction = Instructions.create(Lexer.tokenize(line, 1) as LexerResult, 1);
         if (instruction instanceof CompileError) throw new Error();
 
         const labelMap = new LabelMap();
