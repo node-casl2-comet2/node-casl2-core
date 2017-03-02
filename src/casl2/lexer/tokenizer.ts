@@ -29,26 +29,35 @@ export function splitToTokens(line: string, lineNumber: number): Array<string> |
         arg = rest;
     }
 
+
+
     if (arg.length > 0) {
-        let index = 0;
-        while (index < arg.length) {
-            let matched = false;
-            const rest = arg.slice(index);
+        const tryMatch = (str: string, currentIndex: number): [boolean, number] => {
+            const rest = str.slice(currentIndex);
+
             for (const tDef of TokenDefinitions) {
                 const match = tDef.match(rest);
                 // 文字列の先頭でマッチしたか?
                 if (match !== undefined && match.index == 0) {
-                    matched = true;
                     const token = match[0];
-                    index += token.length;
+                    const newIndex = currentIndex + token.length;
                     if (!(tDef.tokenID === TokenIDs.TCOMMA || tDef.tokenID === TokenIDs.TSPACE)) {
                         result.push(token);
                     }
-                    break;
+                    return [true, newIndex];
                 }
             }
 
-            if (!matched) {
+            return [false, currentIndex];
+        };
+
+        let index = 0;
+
+        while (index < arg.length) {
+            const [matched, newIndex] = tryMatch(arg, index);
+            if (matched) {
+                index = newIndex;
+            } else {
                 return compileError();
             }
         }
