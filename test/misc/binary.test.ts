@@ -1,12 +1,12 @@
 "use strict";
 
 import * as assert from "assert";
-import { binaryRead } from "./binaryReader";
+import { binaryRead } from "../binaryReader";
 import * as path from "path";
-import { Casl2 } from "../src/casl2";
-import { read } from "./reader";
+import { Casl2 } from "../../src/casl2";
+import { read } from "..//reader";
 import * as fs from "fs";
-import { Writer } from "./binaryWriter";
+import { Writer } from "../binaryWriter";
 import * as _ from "lodash";
 
 const defaultCompiler = new Casl2();

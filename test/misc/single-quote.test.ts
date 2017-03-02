@@ -1,7 +1,7 @@
 "use strict";
 
 import * as assert from "assert";
-import { escapeStringConstant } from "../src/helpers/escapeStringConstant";
+import { escapeStringConstant } from "../../src/helpers/escapeStringConstant";
 
 suite("Single quote test", () => {
     test("test", () => {
