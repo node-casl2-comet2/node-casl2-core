@@ -52,7 +52,7 @@ function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) 
     }
 }
 
-function dirTest(dir: string) {
+function dirTest(dir: string, compiler?: Casl2) {
     const folder = path.join("./test/testdata/", dir);
     const files = fs.readdirSync(folder);
     const casFiles = files.filter(x => x.match(/.*\.cas$/));
@@ -63,7 +63,7 @@ function dirTest(dir: string) {
         const comFile = casFile.replace(".cas", ".com");
         const comFilePath = path.join(folder, comFile);
 
-        binaryTest(casFilePath, comFilePath);
+        binaryTest(casFilePath, comFilePath, compiler);
     }
 }
 
@@ -102,6 +102,14 @@ suite("binary test", () => {
 
     test("start test", () => {
         dirTest("start");
+    });
+
+    test("programs test", () => {
+        const compiler = new Casl2({
+            useGR8: true
+        });
+
+        dirTest("programs", compiler);
     });
 
     test("GR8 support test", () => {
