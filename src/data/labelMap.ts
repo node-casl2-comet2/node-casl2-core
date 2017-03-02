@@ -20,9 +20,10 @@ export class LabelMap {
         this._bindMap = new Map();
     }
 
-    public has(key: string): boolean {
-        if (this._bindMap.has(key)) return true;
-        if (this._map.has(key)) return true;
+    public has(key: string, scope?: number): boolean {
+        const k = scope === undefined ? key : scopedName(key, scope);
+        if (this._bindMap.has(k)) return true;
+        if (this._map.has(k)) return true;
 
         return false;
     }

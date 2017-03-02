@@ -127,25 +127,26 @@ export class Casl2 {
         let byteOffset = 0;
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
+            // ラベル名に重複があればコンパイルエラーである
+            const compileError = () => errors.push(new CompileError(inst.lineNumber, `Duplicate label: ${inst.label}`));
 
             inst.setScope(scope);
 
             if (inst.label) {
-                if (labelMap.has(inst.scopedLabel)) {
-                    // ラベル名に重複があればコンパイルエラーである
-                    errors.push(new CompileError(inst.lineNumber, `Duplicate label: ${inst.label}`));
+                if (inst.instructionName === "START" && inst.address != undefined) {
+                    if (labelMap.has(inst.label, inst.scope)) compileError();
+                    // START命令でadr指定がある場合はadrから開始することになる
+                    else labelMap.bindAdd(inst.label, inst.address as string, inst.scope);
                 } else {
-                    if (inst.instructionName === "START" && inst.address != undefined) {
-                        // START命令でadr指定がある場合はadrから開始することになる
-                        labelMap.bindAdd(inst.label, inst.address as string, inst.scope);
-                    } else {
+                    // COMET2は1語16ビット(2バイト)なので2で割っている
+                    const address = byteOffset / 2;
+                    if (inst.instructionName === "START") {
+                        if (labelMap.has(inst.label)) compileError();
                         // サブルーチンのラベルにはグローバルにアクセスできるようにする
-                        if (inst.instructionName === "START") {
-                            labelMap.add(inst.label, byteOffset / 2);
-                        } else {
-                            // COMET2は1語16ビット(2バイト)なので2で割っている
-                            labelMap.add(inst.label, byteOffset / 2, inst.scope);
-                        }
+                        else labelMap.add(inst.label, address);
+                    } else {
+                        if (labelMap.has(inst.label, inst.scope)) compileError();
+                        else labelMap.add(inst.label, address, inst.scope);
                     }
                 }
             }
