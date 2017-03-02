@@ -1,50 +1,12 @@
 "use strict";
 
-import { Lexer, splitToTokens } from "../../src/casl2/lexer";
+import { Lexer } from "../../src/casl2/lexer";
 import { LexerResult } from "../../src/casl2/lexerResult";
 import { CompileError } from "../../src/errors/compileError";
 import { GR } from "../../src/comet2/gr";
 import * as assert from "assert";
 
 suite("Lexer test", () => {
-    test("split tokens test", () => {
-        let line = "CASL    START";
-        let result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["CASL", "START"]);
-
-        line = "L1 ST GR3, L2, GR4";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "ST", "GR3", "L2", "GR4"]);
-
-        line = "L1 LAD GR1, 2";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "LAD", "GR1", "2"]);
-
-        line = "LAD GR1, 2";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["LAD", "GR1", "2"]);
-
-        line = "L1 DS 0";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "DS", "0"]);
-
-        line = "END";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["END"]);
-
-        // 間違った位置にコンマで区切っている
-        line = "L1, LAD GR1, 2"
-        let error = splitToTokens(line, 1);
-
-        assert(error instanceof CompileError);
-
-        line = "LAD, GR1, 2"
-        error = splitToTokens(line, 1);
-
-        assert(error instanceof CompileError);
-    });
-
-
     test("tokenize test: label + instruction no args", () => {
         const line = "CASL2 START";
         const result = Lexer.tokenize(line, 3);

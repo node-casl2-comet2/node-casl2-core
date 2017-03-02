@@ -5,43 +5,7 @@ import { CompileError } from "../errors/compileError";
 import { InvalidInstructionError, InvalidLabelError, ArgumentError } from "../errors/errors";
 import { LexerResult } from "./lexerResult";
 import { LexerOption } from "./lexerOption";
-
-export function splitToTokens(line: string, lineNumber: number): Array<string> | CompileError {
-    const trim = line.trim();
-    const result: Array<string> = [];
-
-    const compileError = () => new CompileError(lineNumber, "cannot split to tokens");
-
-    let arg = "";
-
-    // ラベルまたは命令をキャプチャ
-    const m1 = trim.match(/^([^\s,]+)(.*)$/);
-    if (!m1) return compileError();
-    result.push(m1[1]);
-
-    const rest = m1[2].trim();
-    if (rest.startsWith(",")) return compileError();
-
-    // 命令をキャプチャ
-    const m2 = rest.match(/^([^\s,]+)\s+(.*)$/);
-    if (m2) {
-        result.push(m2[1]);
-        const rest = m2[2].trim();
-        arg = rest;
-    } else {
-        arg = rest;
-    }
-
-    if (arg.length > 0) {
-        // 残りは引数部分なのでコンマ+スペースの連続で分割する
-        const split = arg.split(/,\s*/);
-
-        split.forEach(x => result.push(x));
-    }
-
-    return result;
-}
-
+import { splitToTokens } from "./lexer/tokenizer";
 
 export class Lexer {
     private _lexerOption?: LexerOption;
