@@ -1,0 +1,27 @@
+;====================
+; GR2 の指すメモリ番地から，長さ GR1 の文字列を出力装置に書き出すサブルーチン
+; このサブルーチンが呼ばれたとき，
+; GR7 には，出力用番地の先頭アドレスが，
+; GR6 には，現在出力用番地に入っている文字数が，
+; それぞれ格納されている．
+WRTSTR  START
+        PUSH    0,GR3 ; GR3 の内容をスタックに退避
+        PUSH    0,GR4 ; GR4 の内容をスタックに退避
+        PUSH    0,GR5 ; GR5 の内容をスタックに退避
+        LAD     GR3, 0 ; GR3 は制御変数として用いる
+LOOP    CPA     GR3,GR1
+        JZE     END
+        LD      GR4,GR2
+        ADDA    GR4,GR3 ; 出力する文字の格納番地を計算
+        LD      GR5,0,GR4 ; 出力する文字をレジスタにコピー
+        LD      GR4,GR7
+        ADDA    GR4,GR6 ; 出力先の番地を計算
+        ST      GR5,0,GR4 ; 出力装置に書き出し
+        LAD     GR3,1,GR3
+        LAD     GR6,1,GR6
+        JUMP    LOOP
+END     POP     GR5
+        POP     GR4
+        POP     GR3
+        RET
+        END

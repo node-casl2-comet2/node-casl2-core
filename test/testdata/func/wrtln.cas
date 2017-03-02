@@ -1,0 +1,26 @@
+;====================
+; 改行を出力装置に書き出すサブルーチン
+; 実質的には，GR7で始まるアドレス番地から長さGR6の文字列を出力する
+WRTLN    START
+    PUSH    0,GR1
+    PUSH    0,GR2
+    PUSH    0,GR3
+    ST    GR6,OUTLEN
+    LAD    GR1,0
+LOOP    CPA    GR1,OUTLEN
+    JZE    END
+    LD    GR2,GR7
+    ADDA    GR2,GR1
+    LD    GR3,0,GR2
+    ST    GR3,OUTSTR,GR1
+    LAD    GR1,1,GR1
+    JUMP    LOOP    
+END    OUT    OUTSTR,OUTLEN
+    LAD    GR6,0 ; 文字列を出力して，GR6 を初期化
+    POP    GR3
+    POP    GR2
+    POP    GR1
+    RET
+OUTSTR    DS    256
+OUTLEN    DS    1
+    END

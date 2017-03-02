@@ -5,8 +5,8 @@ import { LabelMap } from "../data/labelMap";
 import { CompileError } from "../errors/compileError";
 
 export class InstructionBase implements Instruction {
-    private _lineNumber: number;
     private _instructionName: string;
+    private _lineNumber: number | undefined;
     private _isConfirmed: boolean;
     private _r1: GR | undefined;
     private _r2: GR | undefined;
@@ -14,21 +14,24 @@ export class InstructionBase implements Instruction {
     private _label: string | undefined;
     private _code: number | undefined;
     private _byteLength: number;
+    private _block: number;
 
     constructor(
         instructionName: string,
+        lineNumber: number | undefined,
         code: number | undefined,
         label?: string | undefined,
         r1?: GR | undefined,
         r2?: GR | undefined,
         address?: number | string | undefined) {
         this._instructionName = instructionName;
+        this._lineNumber = lineNumber;
         this._code = code;
         this._label = label;
         this._r1 = r1;
         this._r2 = r2;
 
-        if (address) {
+        if (address !== undefined) {
             this._address = address;
             // アドレスが数字なら確定してよい
             if (typeof address == "number") {
@@ -83,7 +86,13 @@ export class InstructionBase implements Instruction {
         hex = hex | gr;
 
         if (this._address != undefined) {
-            return [hex, this._address as number];
+            let address = this._address as number;
+
+            if (address < 0) {
+                address = 0xFFFF - (Math.abs(address) - 1);
+            }
+
+            return [hex, address];
         } else {
             return [hex];
         }
@@ -95,8 +104,11 @@ export class InstructionBase implements Instruction {
     public resolveAddress(labelMap: LabelMap): CompileError | undefined {
         if (this._isConfirmed) return undefined;
 
-        const resolvedAddress = labelMap.get(this._address as string);
-        if (resolvedAddress == undefined) return new CompileError(this._lineNumber, "undeclared label: " + this._address as string);
+        const adr = this._address as string;
+        const resolvedAddress = labelMap.get(adr, this.block);
+        if (resolvedAddress == undefined) {
+            return new CompileError(this._lineNumber, "undeclared label: " + adr);
+        }
 
         this._address = resolvedAddress;
         this._isConfirmed = true;
@@ -108,8 +120,16 @@ export class InstructionBase implements Instruction {
         return this._label;
     }
 
+    public get blockedLabel() {
+        return `${this.block}-${this.label}`;
+    }
+
     public get address() {
         return this._address;
+    }
+
+    public get block() {
+        return this._block || 1;
     }
 
     /**
@@ -138,12 +158,12 @@ export class InstructionBase implements Instruction {
 
         // 10進定数か?
         const decimal = parseInt(str, 10);
-        if (decimal) return decimal;
+        if (!isNaN(decimal)) return decimal;
 
         // 16進定数か?
         if (str.charAt(0) == "#") {
             const hex = parseInt(str.slice(1), 16);
-            if (hex) return hex;
+            if (!isNaN(hex)) return hex;
         }
 
         // 文字列か?
@@ -156,6 +176,13 @@ export class InstructionBase implements Instruction {
 
     public replaceLiteralWithLabel(label: string) {
         this._address = label;
+    }
+
+    /**
+     * この命令が属する命令ブロックを設定する
+     */
+    public setBlock(block: number) {
+        this._block = block;
     }
 
     // 参考URL: http://www.officedaytime.com/dcasl2/pguide/qref.html

@@ -1,0 +1,26 @@
+;====================
+; 入力装置から，GR1の文字数を読み込む．
+; 読み込んだ文字列は，GR2 が指すアドレスから順に格納される
+RDSTR    START
+    PUSH    0,GR3 ; GR3 の内容をスタックに退避
+    PUSH    0,GR4 ; GR4 の内容をスタックに退避
+    PUSH    0,GR5 ; GR5 の内容をスタックに退避
+    LAD    GR4,0 ; GR4 を初期化
+    IN    INSTR,INLEN
+LOOP    CPA    GR4,GR1
+    JZE    END ; GR1で指定された文字数を超えたら終わり
+    CPA    GR4,INLEN
+    JZE    END ; 入力された文字数を超えたら終わり
+    LD    GR5,GR2
+    ADDA    GR5,GR4 ; 文字の格納先番地を計算
+    LD    GR3,INSTR,GR4
+    ST    GR3,0,GR5
+    LAD    GR4,1,GR4
+    JUMP    LOOP
+END    POP    GR5
+    POP    GR4
+    POP    GR3
+    RET
+INSTR    DS    256
+INLEN    DS    1
+    END

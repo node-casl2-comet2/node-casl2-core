@@ -7,7 +7,7 @@ export class CompileError {
     private _message: string;
 
     constructor(
-        private _lineNumber: number,
+        private _lineNumber: number | undefined,
         message?: string,
         private _errorCode?: number,
         private _startIndex?: number,

@@ -1,0 +1,39 @@
+;====================
+; DIV 割り算を行うサブルーチン
+; GR1 / GR2 -> 商は GR2, 余りは GR1
+DIV    START
+    PUSH    0, GR3
+    ST    GR1, A
+    ST    GR2, B
+    CPA    GR1, =0
+    JPL    SKIPA
+    XOR    GR1, =#FFFF
+    ADDA    GR1, =1
+SKIPA    CPA    GR2, =0
+    JZE    SKIPD
+    JPL    SKIPB
+    XOR    GR2, =#FFFF
+    ADDA    GR2, =1
+SKIPB    LD    GR3, =0
+LOOP    CPA    GR1, GR2
+    JMI    STEP
+    SUBA    GR1, GR2
+    LAD    GR3, 1, GR3
+    JUMP    LOOP
+STEP    LD    GR2, GR3
+    LD    GR3, A
+    CPA    GR3, =0
+    JPL    SKIPC
+    XOR    GR1, =#FFFF
+    ADDA    GR1, =1
+SKIPC    XOR    GR3, B
+    CPA    GR3, =0
+        JZE     SKIPD
+    JPL    SKIPD
+    XOR    GR2, =#FFFF
+    ADDA    GR2, =1
+SKIPD    POP    GR3
+    RET
+A    DS    1
+B    DS    1
+     END

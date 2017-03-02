@@ -9,7 +9,7 @@ import { CompileError } from "../errors/compileError";
  * ラベル名だけ有効な空命令(バイト長は0)
  */
 export class OLBL extends InstructionBase {
-    constructor(label: string | undefined) {
-        super("OLBL", undefined, label);
+    constructor(lineNumber: number, label: string | undefined) {
+        super("OLBL", lineNumber, undefined, label);
     }
 }

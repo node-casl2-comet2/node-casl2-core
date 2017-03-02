@@ -1,0 +1,29 @@
+;====================
+; MULT: 掛け算を行うサブルーチン
+; GR1 * GR2 -> GR2
+MULT    START
+        PUSH    0,GR1 ; GR1 の内容をスタックに退避
+        PUSH    0,GR3 ; GR3 の内容をスタックに退避
+        PUSH    0,GR4 ; GR4 の内容をスタックに退避
+        LAD     GR3,0 ; GR3 を初期化
+        LD      GR4,GR2
+        JPL     LOOP
+        XOR     GR4,=#FFFF
+        ADDA    GR4,=1
+LOOP    SRL     GR4,1
+        JOV      ONE
+        JUMP    ZERO
+ONE     ADDL    GR3,GR1
+ZERO    SLL     GR1,1
+        AND     GR4,GR4
+        JNZ     LOOP
+        CPA     GR2,=0
+        JPL     END
+        XOR     GR3,=#FFFF
+        ADDA    GR3,=1
+END     LD      GR2,GR3
+        POP     GR4
+        POP     GR3
+        POP     GR1
+        RET
+        END

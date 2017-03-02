@@ -1,4 +1,4 @@
-; OUT命令
+; IN命令
 CASL    START
         IN      BUF, LEN
         RET

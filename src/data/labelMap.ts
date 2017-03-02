@@ -1,5 +1,7 @@
 "use strict";
 
+const blockedName = (name: string, block: number) => `${block}-${name}`;
+
 /**
  * LabelMap
  * ラベル名とアドレスのマップを表すクラス
@@ -25,20 +27,34 @@ export class LabelMap {
         return false;
     }
 
-    public add(key: string, address: number) {
-        this._map.set(key, address);
+    public add(key: string, address: number, block?: number) {
+        if (block === undefined) {
+            this._map.set(key, address);
+        } else {
+            this._map.set(blockedName(key, block), address);
+        }
     }
 
-    public get(key: string) {
-        const k = this._bindMap.has(key) ? this._bindMap.get(key) as string : key;
-        return this._map.get(k);
+    public get(key: string, block?: number) {
+        const k = this._bindMap.has(key) ? this._bindMap.get(key) as string :
+            block !== undefined ? blockedName(key, block) : key;
+
+        const value = this._map.get(k);
+        if (value !== undefined)
+            return value;
+        else
+            return this._map.get(key);
     }
 
     /**
      * keyで問い合わせられたら代わりにbindToで問い合わせる
      * START命令用
      */
-    public bindAdd(key: string, bindTo: string) {
-        this._bindMap.set(key, bindTo);
+    public bindAdd(key: string, bindTo: string, block?: number) {
+        if (block === undefined) {
+            this._bindMap.set(key, bindTo);
+        } else {
+            this._bindMap.set(key, blockedName(bindTo, block));
+        }
     }
 }

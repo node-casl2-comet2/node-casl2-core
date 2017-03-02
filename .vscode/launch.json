@@ -17,9 +17,10 @@
             "sourceMaps": true
         },
         {
-            "name": "Run mocha test",
             "type": "node",
             "request": "launch",
+            "name": "Run mocha test",
+            "preLaunchTask": "compile", // デバッグ前にTypeScriptをコンパイルする            
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
             "args": [

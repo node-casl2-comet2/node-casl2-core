@@ -1,0 +1,11 @@
+;====================
+; 入力装置から文字を読み込み，
+; その内容を GR2 が指すアドレスに格納するサブルーチン
+RDCH    START
+    IN    INCHAR,INLEN
+    LD    GR1,INCHAR
+    ST    GR1,0,GR2
+    RET
+INCHAR    DS    1
+INLEN    DS    1
+    END

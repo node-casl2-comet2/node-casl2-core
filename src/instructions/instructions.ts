@@ -36,54 +36,55 @@ export class Instructions {
         if (inst.match(nopLikeInstRegex)) {
             // 引数を取らない
             // 引数が1つもないことを確かめる
-            if (result.r1 || result.r2 || result.address) return new ArgumentError(lineNumber);
+            if (result.r1 !== undefined || result.r2 !== undefined || result.address !== undefined) return new ArgumentError(lineNumber);
 
-            const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label);
+            const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label);
             return instBase;
         }
         else if (inst.match(popLikeInstRegex)) {
             // r
             // r1のみがあることを確かめる
-            if (!result.r1 || result.r2 || result.address) return new ArgumentError(lineNumber);
+            if (result.r1 === undefined || result.r2 !== undefined || result.address !== undefined) return new ArgumentError(lineNumber);
 
-            const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1);
+            const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1);
             return instBase;
         }
         else if (inst.match(jumpLikeInstRegex)) {
             // adr[, x]
             // アドレスがあること
-            if (!result.address || result.r1) return new ArgumentError(lineNumber);
+            if (result.address === undefined || result.r1 !== undefined) return new ArgumentError(lineNumber);
 
-            const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, result.r2, result.address);
+            const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, result.r2, result.address);
             return instBase;
         }
         else if (inst.match(ladLikeInstRegex)) {
             // r, adr[, x]
-            if (!result.r1 || !result.address) return new ArgumentError(lineNumber);
+            if (result.r1 === undefined || result.address === undefined) return new ArgumentError(lineNumber);
 
-            const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
+            const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
             return instBase;
         }
         else if (inst.match(addaLikeInstRegex)) {
             // r1, r2
             // r, adr[, x]
-            if (result.address) {
+            if (result.address !== undefined) {
                 // アドレス有り
                 if (result.r1 == undefined) return new ArgumentError(lineNumber);
-                const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
+                const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
                 return instBase;
             } else {
                 // アドレス無し
-                if (!(result.r1 && result.r2)) throw new ArgumentError(lineNumber);
+                if (result.r1 === undefined || result.r2 === undefined) throw new ArgumentError(lineNumber);
+
                 // アドレス無しの方の命令コードはアドレス有りのものに4加えたものになる
-                const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst)! + 4, result.label, result.r1, result.r2);
+                const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst)! + 4, result.label, result.r1, result.r2);
                 return instBase;
             }
         } else if (inst.match(startLikeInstRegex)) {
             // [adr]
-            if (result.r1 || result.r2) return new ArgumentError(lineNumber);
+            if (result.r1 !== undefined || result.r2 !== undefined) return new ArgumentError(lineNumber);
 
-            const instBase = new InstructionBase(inst, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
+            const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
             return instBase;
         }
 
@@ -101,7 +102,7 @@ export class Instructions {
         if (result.instruction != "IN") throw new Error();
         if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
 
-        const out = new IN(result.label, result.address, result.lengthAddress);
+        const out = new IN(lineNumber, result.label, result.address, result.lengthAddress);
 
         return out;
     }
@@ -110,7 +111,7 @@ export class Instructions {
         if (result.instruction != "OUT") throw new Error();
         if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
 
-        const out = new OUT(result.label, result.address, result.lengthAddress);
+        const out = new OUT(lineNumber, result.label, result.address, result.lengthAddress);
 
         return out;
     }
@@ -139,14 +140,14 @@ export class Instructions {
         if (wordCount == 0) {
             // 語数が0の場合領域は確保しないがラベルは有効である
             // OLBL命令: ラベル名だけ有効でバイト長は0
-            const olbl = new OLBL(result.label);
+            const olbl = new OLBL(lineNumber, result.label);
             return olbl;
         } else {
             // 語数と同じ数のNOP命令に置き換える
             const nops = new Array<InstructionBase>();
-            nops.push(new InstructionBase("NOP", Instructions.InstMap.get("NOP"), result.label));
+            nops.push(new InstructionBase("NOP", lineNumber, Instructions.InstMap.get("NOP"), result.label));
             for (let i = 1; i < wordCount; i++) {
-                nops.push(new InstructionBase("NOP", Instructions.InstMap.get("NOP")));
+                nops.push(new InstructionBase("NOP", undefined, Instructions.InstMap.get("NOP")));
             }
             return nops;
         }
@@ -168,7 +169,9 @@ export class Instructions {
 
             // 文字列定数がJIS X 0201の範囲内かチェックする
             const inRange = isStrInRange(escaped);
-            if (!inRange) return new CompileError(lineNumber, "文字列定数にJIS X 0201で表現出来ない文字が含まれています");
+            if (!inRange) {
+                return new CompileError(lineNumber, "文字列定数にJIS X 0201で表現出来ない文字が含まれています");
+            }
 
             return escaped;
         }

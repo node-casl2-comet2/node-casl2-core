@@ -1,0 +1,95 @@
+;====================
+; RDINTサブルーチンはMULTサブルーチンを必要とするので含めている
+;====================
+; MULT: 掛け算を行うサブルーチン
+; GR1 * GR2 -> GR2
+MULT    START
+        PUSH    0,GR1 ; GR1 の内容をスタックに退避
+        PUSH    0,GR3 ; GR3 の内容をスタックに退避
+        PUSH    0,GR4 ; GR4 の内容をスタックに退避
+        LAD     GR3,0 ; GR3 を初期化
+        LD      GR4,GR2
+        JPL     LOOP
+        XOR     GR4,=#FFFF
+        ADDA    GR4,=1
+LOOP    SRL     GR4,1
+        JOV      ONE
+        JUMP    ZERO
+ONE     ADDL    GR3,GR1
+ZERO    SLL     GR1,1
+        AND     GR4,GR4
+        JNZ     LOOP
+        CPA     GR2,=0
+        JPL     END
+        XOR     GR3,=#FFFF
+        ADDA    GR3,=1
+END    LD      GR2,GR3
+        POP     GR4
+        POP     GR3
+        POP     GR1
+        RET
+        END
+;====================
+; 入力装置から数値データを読み込み，
+; その内容を GR2 が指すアドレスに格納するサブルーチン
+RDINT    START
+    PUSH    0,GR1 ; GR1 の内容をスタックに退避
+    PUSH    0,GR3 ; GR3 の内容をスタックに退避
+    PUSH    0,GR4 ; GR4 の内容をスタックに退避
+    PUSH    0,GR5 ; GR5 の内容をスタックに退避
+    PUSH    0,GR6 ; GR6 の内容をスタックに退避
+    LD    GR5,GR2 ; GR2 が指す番地を GR5 にコピー
+    LD    GR2,=0 ; GR2 を初期化
+    LD    GR3,=0 ; GR3 を初期化
+    IN    INAREA,INLEN ; 入力を受け取る
+    ; 入力がnullかどうかのチェック
+    CPA    GR3,INLEN
+    JZE    ERROR
+    ; 最初の文字が'-'かどうかのチェック
+    LD    GR4,INAREA,GR3
+    LAD    GR3,1,GR3
+    LD    GR6,GR4 ; GR6 に入力された先頭の文字を保存
+    CPL    GR4,=#002D ; '-'かどうか
+    JZE    LOOP
+    CPL    GR4,='0' ; 数値かどうかのチェック
+    JMI    ERROR
+    CPL    GR4,='9' 
+    JPL    ERROR
+    XOR    GR4,=#0030 ; 数値だったら変換
+    ADDA    GR2,GR4
+    ; 「すでに読み込んだ数値を10倍して，
+    ; 新しく読み込んだ数値と足す．」を繰り返す
+LOOP    CPA    GR3,INLEN
+    JZE    CODE ; 入力された文字数とGR3が同じであればループを抜ける
+    LD    GR1,=10
+    CALL    MULT ; GR2 の値を10倍する
+    LD    GR4,INAREA,GR3
+    CPL    GR4,='0' ; 数値かどうかのチェック
+    JMI    ERROR
+    CPL    GR4,='9' 
+    JPL    ERROR
+    XOR    GR4,=#0030 ; GR4 の内容を数値に変換
+    ADDA    GR2,GR4 ; GR2 に GR1 の内容を足す
+    LAD    GR3,1,GR3; GR3 (ポインタ)をインクリメント
+    JUMP    LOOP
+    ; 最初の文字が '-'であった場合は，-1倍する
+CODE    CPL    GR6,=#002D
+    JNZ    END
+    XOR    GR2,=#FFFF
+    LAD    GR2,1,GR2
+    JUMP    END
+    ; エラーを出力する
+ERROR    OUT    ERRSTR,ERRLEN
+END    ST    GR2,0,GR5 ; GR2 の内容を GR5 が指す番地に格納する
+    LD    GR2,GR5 ; GR5 が指す番地を GR2 に戻す
+    POP    GR6
+    POP    GR5
+    POP    GR4
+    POP    GR3
+    POP    GR1
+    RET
+ERRSTR    DC    'illegal input'
+ERRLEN    DC    13
+INAREA    DS    6
+INLEN    DS    1
+    END

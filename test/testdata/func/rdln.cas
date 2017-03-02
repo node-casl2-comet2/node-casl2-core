@@ -1,0 +1,8 @@
+;====================
+; 入力装置からの文字列を改行まで読み飛ばすサブルーチン
+RDLN    START
+    IN    INAREA,INLEN
+    RET
+INAREA    DS    256
+INLEN    DS    1
+    END

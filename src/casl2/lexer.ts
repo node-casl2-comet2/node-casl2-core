@@ -34,7 +34,7 @@ export function splitToTokens(line: string, lineNumber: number): Array<string> |
 
     if (arg.length > 0) {
         // 残りは引数部分なのでコンマ+スペースの連続で分割する
-        const split = arg.split(/,\s+/);
+        const split = arg.split(/,\s*/);
 
         split.forEach(x => result.push(x));
     }
@@ -80,10 +80,13 @@ export class Lexer {
 
         const split = splitToTokens(lineCommentEliminated, lineNumber);
         if (split instanceof CompileError) return split;
-
         let index = 0;
         const first = split[index];
-        if (this.isInstruction(first)) {
+        const second = split.length > index + 1 ? split[index + 1] : undefined;
+        if (this.isInstruction(first)
+            &&
+            ((lineCommentEliminated.startsWith(" ")) || // 行が空白で始まる場合は一つ目のトークンが命令であると決まる
+                (second === undefined || !this.isInstruction(second!)))) {
             // 1つ目のトークンが命令の場合
             instruction = first;
             index++;
@@ -171,7 +174,7 @@ export class Lexer {
                         } else {
                             // 3. GR, アドレス, GRのパターン
                             const adr = this.toAddress(arg2);
-                            if (!adr) return new ArgumentError(lineNumber);
+                            if (adr === undefined) return new ArgumentError(lineNumber);
 
                             address = adr;
 
@@ -248,7 +251,7 @@ export class Lexer {
             if (gr == "GR8") return GR.GR8_SP;
         }
 
-        throw new Error("Unknwon GR");
+        throw new Error("Unknown GR");
     };
 
     private toConst(str: string): number | string | undefined {
@@ -280,7 +283,7 @@ export class Lexer {
         // 1文字目が'='である
         if (str.charAt(0) == "=") {
             const rest = str.slice(1);
-            if (!(this.isDecimal(rest) || this.isDecimal(rest))) return undefined;
+            if (!(this.isDecimal(rest) || this.isHex(rest) || this.isString(rest))) return undefined;
 
             return str;
         }
@@ -293,27 +296,31 @@ export class Lexer {
         }
 
         // アドレスは10進数かも
-        // マイナスはあり得ない
-        if (str.charAt(0) == "-") return undefined;
         // 10進数と解釈して変換する
         // 変換に失敗するとNaNが返る
         const address = parseInt(str, 10);
         if (isNaN(address)) {
             return undefined;
         } else {
+            // TODO: -32768 ~ 32767の範囲にあるかチェックする
             return address;
         }
     }
 
-    private isDecimal(str: string) {
+    private isDecimal(str: string): boolean {
         const decimal = parseInt(str, 10);
         return !isNaN(decimal);
     }
 
-    private isHex(str: string) {
+    private isHex(str: string): boolean {
         if (str.charAt(0) !== "#") return false;
 
         const hex = parseInt(str.slice(1), 16);
         return !isNaN(hex);
+    }
+
+    private isString(str: string): boolean {
+        return str.length > 2 &&
+            str.charAt(0) == "'" && str.charAt(str.length - 1) == "'";
     }
 }
