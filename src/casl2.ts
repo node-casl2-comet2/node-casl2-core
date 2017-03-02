@@ -123,28 +123,28 @@ export class Casl2 {
         }
 
         // 命令のラベルに実アドレスを割り当てる
-        let block = 1;
+        let scope = 1;
         let byteOffset = 0;
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
 
-            inst.setBlock(block);
+            inst.setScope(scope);
 
             if (inst.label) {
-                if (labelMap.has(inst.blockedLabel)) {
+                if (labelMap.has(inst.scopedLabel)) {
                     // ラベル名に重複があればコンパイルエラーである
                     errors.push(new CompileError(inst.lineNumber, `Duplicate label: ${inst.label}`));
                 } else {
                     if (inst.instructionName === "START" && inst.address != undefined) {
                         // START命令でadr指定がある場合はadrから開始することになる
-                        labelMap.bindAdd(inst.label, inst.address as string, inst.block);
+                        labelMap.bindAdd(inst.label, inst.address as string, inst.scope);
                     } else {
                         // サブルーチンのラベルにはグローバルにアクセスできるようにする
                         if (inst.instructionName === "START") {
                             labelMap.add(inst.label, byteOffset / 2);
                         } else {
                             // COMET2は1語16ビット(2バイト)なので2で割っている
-                            labelMap.add(inst.label, byteOffset / 2, inst.block);
+                            labelMap.add(inst.label, byteOffset / 2, inst.scope);
                         }
                     }
                 }
@@ -154,7 +154,7 @@ export class Casl2 {
 
             // END命令が来るたびにスコープを変える
             if (inst.instructionName === "END") {
-                block++;
+                scope++;
             }
         }
 

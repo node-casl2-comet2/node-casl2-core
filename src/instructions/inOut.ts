@@ -25,13 +25,13 @@ export class INOUT extends InstructionBase {
 
         if (typeof this.address != "number") {
             const adr = this.address as string;
-            const resolvedAddress = labelMap.get(adr, this.block);
+            const resolvedAddress = labelMap.get(adr, this.scope);
             if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + adr);
             this.setAddress(resolvedAddress);
         }
         if (typeof this._lengthAddress != "number") {
             const adr = this._lengthAddress;
-            const resolvedAddress = labelMap.get(adr, this.block);
+            const resolvedAddress = labelMap.get(adr, this.scope);
             if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + adr);
             this._lengthAddress = resolvedAddress;
         }

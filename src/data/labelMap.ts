@@ -1,6 +1,6 @@
 "use strict";
 
-const blockedName = (name: string, block: number) => `${block}-${name}`;
+const scopedName = (name: string, scope: number) => `${scope}-${name}`;
 
 /**
  * LabelMap
@@ -27,17 +27,17 @@ export class LabelMap {
         return false;
     }
 
-    public add(key: string, address: number, block?: number) {
-        if (block === undefined) {
+    public add(key: string, address: number, scope?: number) {
+        if (scope === undefined) {
             this._map.set(key, address);
         } else {
-            this._map.set(blockedName(key, block), address);
+            this._map.set(scopedName(key, scope), address);
         }
     }
 
-    public get(key: string, block?: number) {
+    public get(key: string, scope?: number) {
         const k = this._bindMap.has(key) ? this._bindMap.get(key) as string :
-            block !== undefined ? blockedName(key, block) : key;
+            scope !== undefined ? scopedName(key, scope) : key;
 
         const value = this._map.get(k);
         if (value !== undefined)
@@ -50,11 +50,11 @@ export class LabelMap {
      * keyで問い合わせられたら代わりにbindToで問い合わせる
      * START命令用
      */
-    public bindAdd(key: string, bindTo: string, block?: number) {
-        if (block === undefined) {
+    public bindAdd(key: string, bindTo: string, scope?: number) {
+        if (scope === undefined) {
             this._bindMap.set(key, bindTo);
         } else {
-            this._bindMap.set(key, blockedName(bindTo, block));
+            this._bindMap.set(key, scopedName(bindTo, scope));
         }
     }
 }

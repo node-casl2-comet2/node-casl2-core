@@ -14,7 +14,7 @@ export class InstructionBase implements Instruction {
     private _label: string | undefined;
     private _code: number | undefined;
     private _byteLength: number;
-    private _block: number;
+    private _scope: number;
 
     constructor(
         instructionName: string,
@@ -105,7 +105,7 @@ export class InstructionBase implements Instruction {
         if (this._isConfirmed) return undefined;
 
         const adr = this._address as string;
-        const resolvedAddress = labelMap.get(adr, this.block);
+        const resolvedAddress = labelMap.get(adr, this.scope);
         if (resolvedAddress == undefined) {
             return new CompileError(this._lineNumber, "undeclared label: " + adr);
         }
@@ -120,16 +120,16 @@ export class InstructionBase implements Instruction {
         return this._label;
     }
 
-    public get blockedLabel() {
-        return `${this.block}-${this.label}`;
+    public get scopedLabel() {
+        return `${this.scope}-${this.label}`;
     }
 
     public get address() {
         return this._address;
     }
 
-    public get block() {
-        return this._block || 1;
+    public get scope() {
+        return this._scope || 1;
     }
 
     /**
@@ -181,8 +181,8 @@ export class InstructionBase implements Instruction {
     /**
      * この命令が属する命令ブロックを設定する
      */
-    public setBlock(block: number) {
-        this._block = block;
+    public setScope(scope: number) {
+        this._scope = scope;
     }
 
     // 参考URL: http://www.officedaytime.com/dcasl2/pguide/qref.html
