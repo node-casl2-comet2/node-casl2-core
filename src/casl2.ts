@@ -11,9 +11,14 @@ import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
 import { LexerOption } from "./casl2/lexerOption";
 
+const defaultCompileOption: Casl2CompileOption = {
+    useGR8: false,
+    enableLabelScope: false
+};
+
 export class Casl2 {
 
-    constructor(private _compileOption?: Casl2CompileOption) {
+    constructor(private _compileOption: Casl2CompileOption = defaultCompileOption) {
 
     }
 
@@ -28,12 +33,9 @@ export class Casl2 {
         // フェーズ1: で宣言された定数などはとりあえず置いておいて分かることを解析
         // フェーズ2: =で宣言された定数を配置する
         // フェーズ3: アドレス解決フェーズ
-        let lexerOption: LexerOption | undefined = undefined;
-        if (this._compileOption) {
-            lexerOption = {
-                useGR8: this._compileOption.useGR8
-            };
-        }
+        const lexerOption = {
+            useGR8: this._compileOption.useGR8
+        };
 
         // レキサーを生成する
         const lexer = new Lexer(lexerOption);
@@ -125,7 +127,7 @@ export class Casl2 {
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
         let byteOffset = 0;
-        const enableLabelScope = this._compileOption ? this._compileOption.enableLabelScope === true : false;
+        const enableLabelScope = this._compileOption.enableLabelScope === true;
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
