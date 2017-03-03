@@ -125,6 +125,7 @@ export class Casl2 {
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
         let byteOffset = 0;
+        const enableLabelScope = this._compileOption ? this._compileOption.enableLabelScope === true : false;
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
@@ -153,8 +154,8 @@ export class Casl2 {
 
             byteOffset += inst.byteLength;
 
-            // END命令が来るたびにスコープを変える
-            if (inst.instructionName === "END") {
+            // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
+            if (enableLabelScope && inst.instructionName === "END") {
                 scope++;
             }
         }

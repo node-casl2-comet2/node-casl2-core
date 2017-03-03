@@ -4,7 +4,7 @@ import * as assert from "assert";
 import { binaryRead } from "../binaryReader";
 import * as path from "path";
 import { Casl2 } from "../../src/casl2";
-import { read } from "..//reader";
+import { read } from "../reader";
 import * as fs from "fs";
 import { Writer } from "../binaryWriter";
 import * as _ from "lodash";
@@ -28,7 +28,7 @@ function compile(casFilePath: string, compiler?: Casl2) {
     return result.hexes;
 }
 
-function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) {
+export function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) {
     const expected = binaryRead(comFilePath);
     const actual = compile(casFilePath, compiler);
 
@@ -73,7 +73,11 @@ suite("binary test", () => {
     });
 
     test("func test", () => {
-        dirTest("func");
+        const compiler = new Casl2({
+            enableLabelScope: true
+        });
+
+        dirTest("func", compiler);
     });
 
     test("in test", () => {
@@ -106,19 +110,10 @@ suite("binary test", () => {
 
     test("programs test", () => {
         const compiler = new Casl2({
-            useGR8: true
+            useGR8: true,
+            enableLabelScope: true
         });
 
         dirTest("programs", compiler);
-    });
-
-    test("GR8 support test", () => {
-        const casFilePath = "./test/testdata/options/gr8.cas";
-        const comFilePath = "./test/testdata/options/gr8.com";
-        const compiler = new Casl2({
-            useGR8: true
-        });
-
-        binaryTest(casFilePath, comFilePath, compiler);
     });
 });

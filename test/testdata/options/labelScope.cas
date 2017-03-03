@@ -1,0 +1,9 @@
+; ラベルのスコープが有効ならL1が重複したラベルとならない
+
+CASL    START
+        LAD     GR1, L1
+L1      RET
+        END
+SUB     START
+L1      LAD     GR1, 2
+        END
