@@ -2,6 +2,6 @@
 .git
 coverage
 test
-out/test
+dist/test
 tsconfig.json
 tslint.json
