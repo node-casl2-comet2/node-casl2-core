@@ -44,42 +44,42 @@ export const Diagnostics = {
         message: "{0} が必要です。"
     },
     _0_needed: {
-        code: 8,
+        code: 9,
         category: DiagnosticCategory.Error,
         message: "{0} である必要があります。"
     },
     Instruction_0_arguments_count_should_be_1_: {
-        code: 9,
+        code: 10,
         category: DiagnosticCategory.Error,
         message: "命令 '{0}' のオペランドの数は {1} である必要があります。"
     },
     Invalid_address_0_: {
-        code: 10,
+        code: 11,
         category: DiagnosticCategory.Error,
         message: "{0} はアドレスに使用できません。"
     },
     Invalid_GR_0_: {
-        code: 11,
-        category: DiagnosticCategory.Error,
-        message: "{0} はGRではありません。"
-    },
-    Word_count_should_be_given_by_decimal: {
         code: 12,
         category: DiagnosticCategory.Error,
         message: "{0} はGRではありません。"
     },
-    Cannot_escape_single_quotes: {
+    Word_count_should_be_given_by_decimal: {
         code: 13,
+        category: DiagnosticCategory.Error,
+        message: "{0} はGRではありません。"
+    },
+    Cannot_escape_single_quotes: {
+        code: 14,
         category: DiagnosticCategory.Error,
         message: "シングルクォーテーションをエスケープできません。"
     },
     JIS_X_0201_out_of_range: {
-        code: 14,
+        code: 15,
         category: DiagnosticCategory.Error,
         message: "文字列定数にJIS X 0201で表現出来ない文字が含まれています"
     },
     Undeclared_label_0_: {
-        code: 15,
+        code: 16,
         category: DiagnosticCategory.Error,
         message: "ラベル '{0}' は存在しません。"
     }
