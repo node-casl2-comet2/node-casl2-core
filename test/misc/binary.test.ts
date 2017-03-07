@@ -25,7 +25,7 @@ function compile(casFilePath: string, compiler?: Casl2) {
     assert(result.success);
 
     const { hexes } = result;
-    return result.hexes;
+    return hexes!;
 }
 
 export function binaryTest(casFilePath: string, comFilePath: string, compiler?: Casl2) {

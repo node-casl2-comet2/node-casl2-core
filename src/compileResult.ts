@@ -6,10 +6,10 @@ import { Diagnostic } from "./diagnostics/types";
 
 export class CompileResult {
     constructor(
-        private _instructions: Array<InstructionBase>,
-        private _hexes: Array<number>,
         private _diagnostics: Array<Diagnostic>,
-        private _labelMap: LabelMap) {
+        private _instructions: Array<InstructionBase>,
+        private _labelMap?: LabelMap,
+        private _hexes?: Array<number>) {
     }
 
     public get instructions() {

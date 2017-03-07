@@ -24,7 +24,7 @@ export class Casl2 {
 
     }
 
-    public compile(lines: Array<string>) {
+    public compile(lines: Array<string>): CompileResult {
         const diagnostics: Array<Diagnostic> = [];
         const instructions: Array<InstructionBase> = [];
 
@@ -92,6 +92,11 @@ export class Casl2 {
                     pushDiagnostics(tokenizeResult.errors);
                 }
             }
+        }
+
+        // フェーズ1の段階でエラーがあればフェーズ2に進まない
+        if (diagnostics.length > 0) {
+            return new CompileResult(diagnostics, instructions);
         }
 
         // フェーズ2
@@ -215,9 +220,9 @@ export class Casl2 {
             // 先頭16バイト分に実行開始番地を埋め込む
             hexes.unshift(entryPointAddress, 0, 0, 0, 0, 0, 0, 0);
 
-            return new CompileResult(instructions, hexes, diagnostics, labelMap);
+            return new CompileResult(diagnostics, instructions, labelMap, hexes);
         } else {
-            return new CompileResult(instructions, [], diagnostics, labelMap);
+            return new CompileResult(diagnostics, instructions, labelMap);
         }
     }
 }
