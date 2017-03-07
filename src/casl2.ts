@@ -2,7 +2,6 @@
 
 import { Instructions } from "./instructions/instructions";
 import { InstructionBase } from "./instructions/instructionBase";
-import { CompileError } from "./errors/compileError";
 import { Lexer } from "./casl2/lexer";
 import { LexerResult } from "./casl2/lexerResult";
 import { CompileResult } from "./compileResult";
@@ -10,6 +9,9 @@ import { LabelMap } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
 import { LexerOption } from "./casl2/lexerOption";
+import { Diagnostic } from "./diagnostics/types";
+import { createDiagnostic } from "./diagnostics/diagnosticMessage";
+import { Diagnostics } from "./diagnostics/diagnosticMessages";
 
 const defaultCompileOption: Casl2CompileOption = {
     useGR8: false,
@@ -23,7 +25,7 @@ export class Casl2 {
     }
 
     public compile(lines: Array<string>) {
-        const errors: Array<CompileError> = [];
+        const diagnostics: Array<Diagnostic> = [];
         const instructions: Array<InstructionBase> = [];
 
         // ='A' → MDC 'A'のように自動生成される命令を格納する
@@ -37,6 +39,12 @@ export class Casl2 {
             useGR8: this._compileOption.useGR8
         };
 
+        function pushDiagnostics(diagnos: Array<Diagnostic>) {
+            for (const d of diagnos) {
+                diagnostics.push(d);
+            }
+        }
+
         // レキサーを生成する
         const lexer = new Lexer(lexerOption);
 
@@ -48,28 +56,40 @@ export class Casl2 {
             // 空行なら無視する
             if (line.trim() === "") continue;
 
-            const result = lexer.tokenize(line, lineNumber);
-            if (result instanceof CompileError) {
-                errors.push(result);
-            } else {
-                if (result.isCommentLine) {
+            const tokenizeResult = lexer.tokenize(line, lineNumber);
+            if (tokenizeResult.success) {
+                const lexerResult = tokenizeResult.value;
+                if (!lexerResult) throw new Error();
+
+                if (lexerResult.isCommentLine) {
                     // コメント行なので無視する
                 } else {
-                    const dsOrDc = result.instruction === "DS" || result.instruction === "DC";
-                    const inst = dsOrDc
-                        ? Instructions.createDSDC(result, lineNumber)
-                        : Instructions.create(result, lineNumber);
+                    const dsOrDc = lexerResult.instruction === "DS" || lexerResult.instruction === "DC";
+                    const createInstructionResult = dsOrDc
+                        ? Instructions.createDSDC(lexerResult, lineNumber)
+                        : Instructions.create(lexerResult, lineNumber);
 
-                    if (inst instanceof CompileError) {
+                    if (createInstructionResult.success) {
+                        const inst = createInstructionResult.value;
+                        if (inst === undefined) throw new Error();
+
+                        if (inst instanceof InstructionBase) {
+                            instructions.push(inst);
+                        }
+                        else {
+                            inst.forEach(x => instructions.push(x));
+                        }
+                    } else {
+                        const { errors } = createInstructionResult;
                         // コンパイルエラー
-                        errors.push(inst);
+                        if (errors) {
+                            pushDiagnostics(errors);
+                        }
                     }
-                    else if (inst instanceof InstructionBase) {
-                        instructions.push(inst);
-                    }
-                    else {
-                        inst.forEach(x => instructions.push(x));
-                    }
+                }
+            } else {
+                if (tokenizeResult.errors) {
+                    pushDiagnostics(tokenizeResult.errors);
                 }
             }
         }
@@ -85,15 +105,23 @@ export class Casl2 {
 
                 // リテラルをオペランドとするDC命令を生成する
                 const lexerResult = new LexerResult(label, "DC", undefined, undefined, undefined, undefined, undefined, [literal]);
-                const dc = Instructions.createDSDC(lexerResult, inst.lineNumber!);
+                const createDSDCResult = Instructions.createDSDC(lexerResult, inst.lineNumber!);
 
-                // 生成したDC命令を追加する
-                if (dc instanceof CompileError) {
-                    errors.push(dc);
-                } else if (dc instanceof InstructionBase) {
-                    generatedInstructions.push(dc);
+                if (createDSDCResult.success) {
+                    const dc = createDSDCResult.value;
+                    if (dc === undefined) throw new Error();
+
+                    // 生成したDC命令を追加する
+                    if (dc instanceof InstructionBase) {
+                        generatedInstructions.push(dc);
+                    } else {
+                        dc.forEach(mdc => generatedInstructions.push(mdc));
+                    }
                 } else {
-                    dc.forEach(mdc => generatedInstructions.push(mdc));
+                    const { errors } = createDSDCResult;
+                    if (errors === undefined) throw new Error();
+
+                    pushDiagnostics(errors);
                 }
             }
         });
@@ -131,7 +159,7 @@ export class Casl2 {
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
-            const compileError = () => errors.push(new CompileError(inst.lineNumber, `Duplicate label: ${inst.label}`));
+            const compileError = () => diagnostics.push(createDiagnostic(inst.lineNumber!, 0, 0, Diagnostics.Duplicate_label_0_, inst.label));
 
             inst.setScope(scope);
 
@@ -166,12 +194,12 @@ export class Casl2 {
         for (const inst of instructions) {
             const error = inst.resolveAddress(labelMap);
             if (error) {
-                errors.push(error);
+                diagnostics.push(error);
             }
         }
 
 
-        if (errors.length == 0) {
+        if (diagnostics.length == 0) {
             // コンパイル成功の場合
             for (const inst of generatedInstructions) {
                 instructions.push(inst);
@@ -187,9 +215,9 @@ export class Casl2 {
             // 先頭16バイト分に実行開始番地を埋め込む
             hexes.unshift(entryPointAddress, 0, 0, 0, 0, 0, 0, 0);
 
-            return new CompileResult(instructions, hexes, errors, labelMap);
+            return new CompileResult(instructions, hexes, diagnostics, labelMap);
         } else {
-            return new CompileResult(instructions, [], errors, labelMap);
+            return new CompileResult(instructions, [], diagnostics, labelMap);
         }
     }
 }

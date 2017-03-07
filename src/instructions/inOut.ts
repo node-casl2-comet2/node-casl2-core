@@ -2,7 +2,9 @@
 
 import { InstructionBase } from "./instructionBase";
 import { LabelMap } from "../data/labelMap";
-import { CompileError } from "../errors/compileError";
+import { Diagnostic } from "../diagnostics/types";
+import { createDiagnostic } from "../diagnostics/diagnosticMessage";
+import { Diagnostics } from "../diagnostics/diagnosticMessages";
 
 export class INOUT extends InstructionBase {
     protected _lengthAddress: number | string;
@@ -20,19 +22,23 @@ export class INOUT extends InstructionBase {
         return 6;
     }
 
-    public resolveAddress(labelMap: LabelMap): CompileError | undefined {
+    public resolveAddress(labelMap: LabelMap): Diagnostic | undefined {
         if (this.isConfirmed) return undefined;
 
         if (typeof this.address != "number") {
             const adr = this.address as string;
             const resolvedAddress = labelMap.get(adr, this.scope);
-            if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + adr);
+            if (resolvedAddress == undefined) {
+                return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
+            }
             this.setAddress(resolvedAddress);
         }
         if (typeof this._lengthAddress != "number") {
             const adr = this._lengthAddress;
             const resolvedAddress = labelMap.get(adr, this.scope);
-            if (resolvedAddress == undefined) return new CompileError(this.lineNumber, "undeclared label: " + adr);
+            if (resolvedAddress == undefined) {
+                return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
+            }
             this._lengthAddress = resolvedAddress;
         }
 

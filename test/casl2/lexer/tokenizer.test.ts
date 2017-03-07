@@ -2,48 +2,48 @@
 
 import * as assert from "assert";
 import { splitToTokens } from "../../../src/casl2/lexer/tokenizer";
-import { CompileError } from "../../../src/errors/compileError";
+import { Diagnostics } from "../../../src/diagnostics/diagnosticMessages";
+import { createDiagnostic } from "../../../src/diagnostics/diagnosticMessage";
 
+function test2(line: string, expectedTokens: Array<string>) {
+    test(line, () => {
+        const result = splitToTokens(line, 1);
+        assert(result.success);
+        assert.deepEqual(result.value, expectedTokens);
+    });
+}
 
 suite("tokenizer test", () => {
-    test("test", () => {
-        let line = "CASL    START";
-        let result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["CASL", "START"]);
+    suite("test", () => {
+        const testcases: Array<[string, Array<string>]> = [
+            ["CASL    START", ["CASL", "START"]],
+            ["L1 ST GR3, L2, GR4", ["L1", "ST", "GR3", "L2", "GR4"]],
+            ["L1 LAD GR1, 2", ["L1", "LAD", "GR1", "2"]],
+            ["LAD GR1, 2", ["LAD", "GR1", "2"]],
+            ["L6      DC      3, #00AB, 'A', 'BCD', L0", ["L6", "DC", "3", "#00AB", "'A'", "'BCD'", "L0"]],
+            ["L1 DS 0", ["L1", "DS", "0"]],
+            ["END", ["END"]],
+        ];
 
-        line = "L1 ST GR3, L2, GR4";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "ST", "GR3", "L2", "GR4"]);
+        for (const testcase of testcases) {
+            const [line, expectedTokens] = testcase;
+            test2(line, expectedTokens);
+        }
+    });
 
-        line = "L1 LAD GR1, 2";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "LAD", "GR1", "2"]);
-
-        line = "LAD GR1, 2";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["LAD", "GR1", "2"]);
-
-        line = "L6      DC      3, #00AB, 'A', 'BCD', L0";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L6", "DC", "3", "#00AB", "'A'", "'BCD'", "L0"]);
-
-        line = "L1 DS 0";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["L1", "DS", "0"]);
-
-        line = "END";
-        result = splitToTokens(line, 1) as Array<string>;
-        assert.deepEqual(result, ["END"]);
+    test("error patterns", () => {
+        const diagnostic = createDiagnostic(1, 0, 0, Diagnostics.Invalid_instruction_line);
 
         // 間違った位置にコンマで区切っている
-        line = "L1, LAD GR1, 2"
-        let error = splitToTokens(line, 1);
-
-        assert(error instanceof CompileError);
+        let line = "L1, LAD GR1, 2"
+        let result = splitToTokens(line, 1);
+        assert(!result.success);
+        assert.deepEqual(result.errors![0], diagnostic);
 
         line = "LAD, GR1, 2"
-        error = splitToTokens(line, 1);
+        result = splitToTokens(line, 1);
 
-        assert(error instanceof CompileError);
+        assert(!result.success);
+        assert.deepEqual(result.errors![0], diagnostic);
     });
 });

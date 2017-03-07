@@ -1,8 +1,6 @@
 "use strict";
 
 import { InstructionBase } from "./instructionBase";
-import { LabelMap } from "../data/labelMap";
-import { CompileError } from "../errors/compileError";
 
 /**
  * OLBL命令

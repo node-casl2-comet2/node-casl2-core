@@ -1,23 +1,39 @@
 "use strict";
 
-import { CompileError } from "../../errors/compileError";
-import { TokenDefinitions, TokenIDs } from "./token";
+import { Diagnostic } from "../../diagnostics/types";
+import { Diagnostics } from "../../diagnostics/diagnosticMessages";
+import { createDiagnostic } from "../../diagnostics/diagnosticMessage";
+import { TokenDefinitions, TokenIDs } from "../lexer/token";
+import { Expected } from "../../expected";
 
-export function splitToTokens(line: string, lineNumber: number): Array<string> | CompileError {
+export function splitToTokens(line: string, lineNumber: number): Expected<Array<string>, Diagnostic> {
     const trim = line.trim();
     const result: Array<string> = [];
 
-    const compileError = () => new CompileError(lineNumber, "cannot split to tokens");
+    const error = () => createDiagnostic(lineNumber, 0, 0, Diagnostics.Invalid_instruction_line);
 
     let arg = "";
 
     // ラベルまたは命令をキャプチャ
     const m1 = trim.match(/^([^\s,]+)(.*)$/);
-    if (!m1) return compileError();
+    if (!m1) {
+        return {
+            success: false,
+            value: [],
+            errors: [error()]
+        };
+    }
+
     result.push(m1[1]);
 
     const rest = m1[2].trim();
-    if (rest.startsWith(",")) return compileError();
+    if (rest.startsWith(",")) {
+        return {
+            success: false,
+            value: result,
+            errors: [error()]
+        };
+    }
 
     // 命令をキャプチャ
     const m2 = rest.match(/^([^\s,]+)\s+(.*)$/);
@@ -28,8 +44,6 @@ export function splitToTokens(line: string, lineNumber: number): Array<string> |
     } else {
         arg = rest;
     }
-
-
 
     if (arg.length > 0) {
         const tryMatch = (str: string, currentIndex: number): [boolean, number] => {
@@ -58,10 +72,18 @@ export function splitToTokens(line: string, lineNumber: number): Array<string> |
             if (matched) {
                 index = newIndex;
             } else {
-                return compileError();
+                return {
+                    success: false,
+                    value: result,
+                    errors: [error()]
+                };
             }
         }
     }
 
-    return result;
+    return {
+        success: true,
+        value: result,
+        errors: [error()]
+    };
 }

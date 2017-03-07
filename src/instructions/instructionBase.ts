@@ -2,7 +2,9 @@
 
 import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import { LabelMap } from "../data/labelMap";
-import { CompileError } from "../errors/compileError";
+import { Diagnostic } from "../diagnostics/types";
+import { createDiagnostic } from "../diagnostics/diagnosticMessage";
+import { Diagnostics } from "../diagnostics/diagnosticMessages";
 
 export class InstructionBase implements Instruction {
     private _instructionName: string;
@@ -101,13 +103,13 @@ export class InstructionBase implements Instruction {
     /**
      * ラベルマップを使ってラベルを実際のアドレスに解決します
      */
-    public resolveAddress(labelMap: LabelMap): CompileError | undefined {
+    public resolveAddress(labelMap: LabelMap): Diagnostic | undefined {
         if (this._isConfirmed) return undefined;
 
         const adr = this._address as string;
         const resolvedAddress = labelMap.get(adr, this.scope);
         if (resolvedAddress == undefined) {
-            return new CompileError(this._lineNumber, "undeclared label: " + adr);
+            return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
         }
 
         this._address = resolvedAddress;
@@ -229,5 +231,5 @@ export class InstructionBase implements Instruction {
 }
 
 export interface Instruction {
-    resolveAddress(labelMap: LabelMap): CompileError | undefined;
+    resolveAddress(labelMap: LabelMap): Diagnostic | undefined;
 }

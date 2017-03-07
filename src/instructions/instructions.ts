@@ -7,13 +7,15 @@ import { OUT } from "./out";
 import { OLBL } from "./olbl";
 import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import { LexerResult } from "../casl2/lexerResult";
-import { CompileError } from "../errors/compileError";
-import { ArgumentError } from "../errors/errors";
 import { escapeStringConstant } from "../helpers/escapeStringConstant";
 import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
+import { Expected } from "../expected";
+import { Diagnostic } from "../diagnostics/types";
+import { Diagnostics } from "../diagnostics/diagnosticMessages";
+import { createDiagnostic } from "../diagnostics/diagnosticMessage";
 
 export class Instructions {
-    public static create(result: LexerResult, lineNumber: number): InstructionBase | CompileError {
+    public static create(result: LexerResult, lineNumber: number): Expected<InstructionBase, Diagnostic> {
         // 引数を取らない命令(5個)
         const nopLikeInstRegex = /\b(END|RPUSH|RPOP|RET|NOP)\b/;
 
@@ -36,63 +38,90 @@ export class Instructions {
         if (inst.match(nopLikeInstRegex)) {
             // 引数を取らない
             // 引数が1つもないことを確かめる
-            if (result.r1 !== undefined || result.r2 !== undefined || result.address !== undefined) return new ArgumentError(lineNumber);
+            if (result.r1 !== undefined || result.r2 !== undefined || result.address !== undefined) throw new Error();
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label);
-            return instBase;
+            return {
+                success: true,
+                value: instBase
+            };
         }
         else if (inst.match(popLikeInstRegex)) {
             // r
             // r1のみがあることを確かめる
-            if (result.r1 === undefined || result.r2 !== undefined || result.address !== undefined) return new ArgumentError(lineNumber);
+            if (result.r1 === undefined || result.r2 !== undefined || result.address !== undefined) throw new Error();
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1);
-            return instBase;
+            return {
+                success: true,
+                value: instBase
+            };
         }
         else if (inst.match(jumpLikeInstRegex)) {
             // adr[, x]
             // アドレスがあること
-            if (result.address === undefined || result.r1 !== undefined) return new ArgumentError(lineNumber);
+            if (result.address === undefined || result.r1 !== undefined) throw new Error();
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, result.r2, result.address);
-            return instBase;
+            return {
+                success: true,
+                value: instBase
+            };
         }
         else if (inst.match(ladLikeInstRegex)) {
             // r, adr[, x]
-            if (result.r1 === undefined || result.address === undefined) return new ArgumentError(lineNumber);
+            if (result.r1 === undefined || result.address === undefined) throw new Error();
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
-            return instBase;
+            return {
+                success: true,
+                value: instBase
+            };
         }
         else if (inst.match(addaLikeInstRegex)) {
             // r1, r2
             // r, adr[, x]
             if (result.address !== undefined) {
                 // アドレス有り
-                if (result.r1 == undefined) return new ArgumentError(lineNumber);
+                if (result.r1 == undefined) throw new Error();
                 const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
-                return instBase;
+                return {
+                    success: true,
+                    value: instBase
+                };
             } else {
                 // アドレス無し
-                if (result.r1 === undefined || result.r2 === undefined) throw new ArgumentError(lineNumber);
+                if (result.r1 === undefined || result.r2 === undefined) throw new Error();
 
                 // アドレス無しの方の命令コードはアドレス有りのものに4加えたものになる
                 const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst)! + 4, result.label, result.r1, result.r2);
-                return instBase;
+                return {
+                    success: true,
+                    value: instBase
+                };
             }
         } else if (inst.match(startLikeInstRegex)) {
             // [adr]
-            if (result.r1 !== undefined || result.r2 !== undefined) return new ArgumentError(lineNumber);
+            if (result.r1 !== undefined || result.r2 !== undefined) throw new Error();
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
-            return instBase;
+            return {
+                success: true,
+                value: instBase
+            };
         }
 
         switch (inst) {
             case "IN":
-                return Instructions.createIN(result, lineNumber);
+                return {
+                    success: true,
+                    value: Instructions.createIN(result, lineNumber)
+                };
             case "OUT":
-                return Instructions.createOUT(result, lineNumber);
+                return {
+                    success: true,
+                    value: Instructions.createOUT(result, lineNumber)
+                };
         }
 
         throw new Error("Unknown instruction");
@@ -119,20 +148,35 @@ export class Instructions {
 
     // DS命令とDC命令だけInstructionBaseの配列を返す場合があるので別にしている
 
-    public static createDSDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
+    public static createDSDC(result: LexerResult, lineNumber: number): Expected<InstructionBase | Array<InstructionBase>, Diagnostic> {
         const inst = result.instruction!;
 
-        switch (inst) {
-            case "DS":
-                return Instructions.createDS(result, lineNumber);
-            case "DC":
-                return Instructions.createDC(result, lineNumber);
+        function f(result: LexerResult, lineNumber: number, method: (result: LexerResult, lineNumber: number) => Expected<InstructionBase | Array<InstructionBase>, Diagnostic>) {
+            const r = method(result, lineNumber);
+            if (r.success) {
+                return {
+                    success: true,
+                    value: r.value
+                };
+            } else {
+                return {
+                    success: false,
+                    errors: r.errors
+                };
+            }
+        }
+
+        if (inst === "DS") {
+            return f(result, lineNumber, Instructions.createDS);
+        }
+        if (inst === "DC") {
+            return f(result, lineNumber, Instructions.createDC);
         }
 
         throw new Error(`"${inst} is not DS or DC"`);
     }
 
-    private static createDS(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> {
+    private static createDS(result: LexerResult, lineNumber: number): Expected<InstructionBase | Array<InstructionBase>, Diagnostic> {
         const { instruction, wordCount } = result;
         if (instruction != "DS") throw new Error();
         if (wordCount === undefined) throw new Error();
@@ -141,7 +185,10 @@ export class Instructions {
             // 語数が0の場合領域は確保しないがラベルは有効である
             // OLBL命令: ラベル名だけ有効でバイト長は0
             const olbl = new OLBL(lineNumber, result.label);
-            return olbl;
+            return {
+                success: true,
+                value: olbl
+            };
         } else {
             // 語数と同じ数のNOP命令に置き換える
             const nops = new Array<InstructionBase>();
@@ -149,36 +196,44 @@ export class Instructions {
             for (let i = 1; i < wordCount; i++) {
                 nops.push(new InstructionBase("NOP", undefined, Instructions.InstMap.get("NOP")));
             }
-            return nops;
+            return {
+                success: true,
+                value: nops
+            };
         }
     }
 
-    private static createDC(result: LexerResult, lineNumber: number): InstructionBase | Array<InstructionBase> | CompileError {
+    private static createDC(result: LexerResult, lineNumber: number): Expected<InstructionBase | Array<InstructionBase>, Diagnostic> {
         if (result.instruction != "DC") throw new Error();
-
         if (result.consts == undefined) throw new Error();
+
+        const errors: Array<Diagnostic> = [];
 
         const isStringLiteral = (c: string | number) => typeof c == "string" && c.startsWith("'");
 
-        const validateStringConstant = (strLiteral: string): CompileError | string => {
+        function validateStringConstant(strLiteral: string): string | undefined {
             // シングルクォーテーションで囲まれた部分の文字列を取り出す
             const str = strLiteral.slice(1, strLiteral.length - 1);
             // シングルクォーテーションをエスケープする
             const escaped = escapeStringConstant(str);
-            if (escaped == undefined) return new CompileError(lineNumber, "Single quotes are not collectly escaped.");
+            if (escaped == undefined) {
+                errors.push(createDiagnostic(lineNumber, 0, 0, Diagnostics.Cannot_escape_single_quotes));
+                return;
+            }
 
             // 文字列定数がJIS X 0201の範囲内かチェックする
             const inRange = jisx0201.isStrInRange(escaped);
             if (!inRange) {
-                return new CompileError(lineNumber, "文字列定数にJIS X 0201で表現出来ない文字が含まれています");
+                errors.push(createDiagnostic(lineNumber, 0, 0, Diagnostics.JIS_X_0201_out_of_range));
+                return;
             }
 
             return escaped;
         }
 
-        const splitStringLiteralToMdcs = (strLiteral: string, mdcs: Array<MDC>, label?: string): CompileError | undefined => {
+        function splitStringLiteralToMdcs(strLiteral: string, mdcs: Array<MDC>, label?: string): void {
             const escaped = validateStringConstant(strLiteral);
-            if (escaped instanceof CompileError) return escaped;
+            if (escaped === undefined) return;
 
             const ch = escaped.charAt(0);
             const mdc = new MDC(label, undefined, ch);
@@ -188,21 +243,30 @@ export class Instructions {
                 const mdc = new MDC(undefined, undefined, ch);
                 mdcs.push(mdc);
             }
-
-            return undefined;
         }
 
         if (result.consts.length == 1) {
             const c = result.consts[0];
             if (isStringLiteral(c)) {
                 const mdcs = new Array<MDC>();
-                const error = splitStringLiteralToMdcs(c as string, mdcs, result.label);
-                if (error) return error;
-
-                return mdcs;
+                splitStringLiteralToMdcs(c as string, mdcs, result.label);
+                if (errors.length > 0) {
+                    return {
+                        success: false,
+                        errors: errors
+                    };
+                } else {
+                    return {
+                        success: true,
+                        value: mdcs
+                    };
+                }
             } else {
                 const mdc = new MDC(result.label, c);
-                return mdc;
+                return {
+                    success: true,
+                    value: mdc
+                };
             }
         } else {
             const mdcs = new Array<MDC>();
@@ -230,7 +294,10 @@ export class Instructions {
                 }
             }
 
-            return mdcs;
+            return {
+                success: true,
+                value: mdcs
+            };
         }
     }
 
