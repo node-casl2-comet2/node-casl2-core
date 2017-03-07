@@ -1,6 +1,6 @@
 "use strict";
 
-import { GR } from "../comet2/gr";
+import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import { LabelMap } from "../data/labelMap";
 import { CompileError } from "../errors/compileError";
 

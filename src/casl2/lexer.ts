@@ -1,6 +1,6 @@
 "use strict";
 
-import { GR } from "../comet2/gr";
+import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import { CompileError } from "../errors/compileError";
 import { InvalidInstructionError, InvalidLabelError, ArgumentError } from "../errors/errors";
 import { LexerResult } from "./lexerResult";

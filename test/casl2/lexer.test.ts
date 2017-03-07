@@ -3,7 +3,7 @@
 import { Lexer } from "../../src/casl2/lexer";
 import { LexerResult } from "../../src/casl2/lexerResult";
 import { CompileError } from "../../src/errors/compileError";
-import { GR } from "../../src/comet2/gr";
+import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import * as assert from "assert";
 
 suite("Lexer test", () => {
