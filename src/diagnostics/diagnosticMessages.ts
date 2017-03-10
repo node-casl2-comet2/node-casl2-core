@@ -82,5 +82,65 @@ export const Diagnostics = {
         code: 16,
         category: DiagnosticCategory.Error,
         message: "ラベル '{0}' は存在しません。"
+    },
+    Missing_instruction: {
+        code: 17,
+        category: DiagnosticCategory.Error,
+        message: "命令がありません。"
+    },
+    Missing_address: {
+        code: 18,
+        category: DiagnosticCategory.Error,
+        message: "アドレス 'adr' がありません。"
+    },
+    Unnecessary_operand: {
+        code: 20,
+        category: DiagnosticCategory.Message,
+        message: "余計なオペランドです。"
+    },
+    Missing_GR_r1: {
+        code: 21,
+        category: DiagnosticCategory.Error,
+        message: "GR 'r1' がありません。"
+    },
+    Missing_GR_r2: {
+        code: 22,
+        category: DiagnosticCategory.Error,
+        message: "GR 'r2' がありません。"
+    },
+    Missing_r: {
+        code: 23,
+        category: DiagnosticCategory.Error,
+        message: "GR 'r' がありません。"
+    },
+    Missing_input_buf: {
+        code: 24,
+        category: DiagnosticCategory.Error,
+        message: "アドレス '入力領域' がありません。"
+    },
+    Missing_input_length_buf: {
+        code: 25,
+        category: DiagnosticCategory.Error,
+        message: "アドレス '入力文字長領域' がありません。"
+    },
+    Missing_output_buf: {
+        code: 26,
+        category: DiagnosticCategory.Error,
+        message: "アドレス '出力領域' がありません。"
+    },
+    Missing_output_length_buf: {
+        code: 27,
+        category: DiagnosticCategory.Error,
+        message: "アドレス '出力文字長領域' がありません。"
+    },
+    Missing_word_count: {
+        code: 28,
+        category: DiagnosticCategory.Error,
+        message: "10進定数 '語数' がありません。"
+    },
+    Missing_constans: {
+        code: 29,
+        category: DiagnosticCategory.Error,
+        message: "'定数[, 定数]' がありません。"
     }
 }

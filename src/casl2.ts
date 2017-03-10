@@ -18,13 +18,20 @@ const defaultCompileOption: Casl2CompileOption = {
     enableLabelScope: false
 };
 
+export interface Casl2DiagnosticResult {
+    diagnostics: Array<Diagnostic>;
+    instructions: Array<InstructionBase>;
+    generatedInstructions: Array<InstructionBase>;
+    labelMap: LabelMap;
+}
+
 export class Casl2 {
 
     constructor(private _compileOption: Casl2CompileOption = defaultCompileOption) {
 
     }
 
-    public compile(lines: Array<string>): CompileResult {
+    analyze(lines: Array<string>): Casl2DiagnosticResult {
         const diagnostics: Array<Diagnostic> = [];
         const instructions: Array<InstructionBase> = [];
 
@@ -92,11 +99,6 @@ export class Casl2 {
                     pushDiagnostics(tokenizeResult.errors);
                 }
             }
-        }
-
-        // フェーズ1の段階でエラーがあればフェーズ2に進まない
-        if (diagnostics.length > 0) {
-            return new CompileResult(diagnostics, instructions);
         }
 
         // フェーズ2
@@ -203,6 +205,16 @@ export class Casl2 {
             }
         }
 
+        return {
+            diagnostics: diagnostics,
+            instructions: instructions,
+            generatedInstructions: generatedInstructions,
+            labelMap: labelMap
+        }
+    }
+
+    public compile(lines: Array<string>): CompileResult {
+        const { diagnostics, instructions, generatedInstructions, labelMap } = this.analyze(lines);
 
         if (diagnostics.length == 0) {
             // コンパイル成功の場合

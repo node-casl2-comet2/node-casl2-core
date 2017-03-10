@@ -82,14 +82,18 @@ export class Lexer {
             label = first;
 
             index++;
-            const inst = split[index];
-            if (!this.isInstruction(inst)) {
-                errors.push(createDiagnostic(lineNumber, 0, 0, Diagnostics.Invalid_instruction_0_, inst));
+            if (index > split.length - 1) {
+                errors.push(createDiagnostic(lineNumber, 0, 0, Diagnostics.Missing_instruction));
+            } else {
+                const inst = split[index];
+                if (!this.isInstruction(inst)) {
+                    errors.push(createDiagnostic(lineNumber, 0, 0, Diagnostics.Invalid_instruction_0_, inst));
+                }
+
+                instruction = inst;
+
+                index++;
             }
-
-            instruction = inst;
-
-            index++;
         }
 
         // 引数のパターンは5種類

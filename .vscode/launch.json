@@ -38,6 +38,17 @@
                 "${workspaceRoot}/dist/**/*.js"
             ],
             "sourceMaps": true
+        },
+        {
+            "name": "Attach",
+            "type": "node",
+            "request": "attach",
+            "port": 6009,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/dist/src/**/*.js"
+            ],
+            "protocol": "legacy"
         }
     ]
 }

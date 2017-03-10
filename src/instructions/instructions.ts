@@ -10,9 +10,16 @@ import { LexerResult } from "../casl2/lexerResult";
 import { escapeStringConstant } from "../helpers/escapeStringConstant";
 import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
 import { Expected } from "../expected";
-import { Diagnostic } from "../diagnostics/types";
+import { Diagnostic, DiagnosticMessage } from "../diagnostics/types";
 import { Diagnostics } from "../diagnostics/diagnosticMessages";
 import { createDiagnostic } from "../diagnostics/diagnosticMessage";
+
+function createError(message: DiagnosticMessage, lineNumber: number, startIndex = 0, endIndex = 0) {
+    return {
+        success: false,
+        errors: [createDiagnostic(lineNumber, startIndex, endIndex, message)]
+    };
+}
 
 export class Instructions {
     public static create(result: LexerResult, lineNumber: number): Expected<InstructionBase, Diagnostic> {
@@ -38,7 +45,9 @@ export class Instructions {
         if (inst.match(nopLikeInstRegex)) {
             // 引数を取らない
             // 引数が1つもないことを確かめる
-            if (result.r1 !== undefined || result.r2 !== undefined || result.address !== undefined) throw new Error();
+            if (result.r1 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
+            if (result.r2 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
+            if (result.address !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label);
             return {
@@ -49,7 +58,9 @@ export class Instructions {
         else if (inst.match(popLikeInstRegex)) {
             // r
             // r1のみがあることを確かめる
-            if (result.r1 === undefined || result.r2 !== undefined || result.address !== undefined) throw new Error();
+            if (result.r1 === undefined) return createError(Diagnostics.Missing_r, lineNumber);
+            if (result.r2 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
+            if (result.address !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1);
             return {
@@ -60,7 +71,8 @@ export class Instructions {
         else if (inst.match(jumpLikeInstRegex)) {
             // adr[, x]
             // アドレスがあること
-            if (result.address === undefined || result.r1 !== undefined) throw new Error();
+            if (result.address === undefined) return createError(Diagnostics.Missing_address, lineNumber);
+            if (result.r1 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, result.r2, result.address);
             return {
@@ -70,7 +82,8 @@ export class Instructions {
         }
         else if (inst.match(ladLikeInstRegex)) {
             // r, adr[, x]
-            if (result.r1 === undefined || result.address === undefined) throw new Error();
+            if (result.r1 === undefined) return createError(Diagnostics.Missing_r, lineNumber);
+            if (result.address === undefined) return createError(Diagnostics.Missing_address, lineNumber);
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
             return {
@@ -83,7 +96,8 @@ export class Instructions {
             // r, adr[, x]
             if (result.address !== undefined) {
                 // アドレス有り
-                if (result.r1 == undefined) throw new Error();
+                if (result.r1 === undefined) return createError(Diagnostics.Missing_GR_r1, lineNumber);
+
                 const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, result.r1, result.r2, result.address);
                 return {
                     success: true,
@@ -91,7 +105,8 @@ export class Instructions {
                 };
             } else {
                 // アドレス無し
-                if (result.r1 === undefined || result.r2 === undefined) throw new Error();
+                if (result.r1 === undefined) return createError(Diagnostics.Missing_GR_r1, lineNumber);
+                if (result.r2 === undefined) return createError(Diagnostics.Missing_GR_r2, lineNumber);
 
                 // アドレス無しの方の命令コードはアドレス有りのものに4加えたものになる
                 const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst)! + 4, result.label, result.r1, result.r2);
@@ -102,7 +117,8 @@ export class Instructions {
             }
         } else if (inst.match(startLikeInstRegex)) {
             // [adr]
-            if (result.r1 !== undefined || result.r2 !== undefined) throw new Error();
+            if (result.r1 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
+            if (result.r2 !== undefined) return createError(Diagnostics.Unnecessary_operand, lineNumber);
 
             const instBase = new InstructionBase(inst, lineNumber, Instructions.InstMap.get(inst), result.label, undefined, undefined, result.address);
             return {
@@ -112,37 +128,37 @@ export class Instructions {
         }
 
         switch (inst) {
-            case "IN":
-                return {
-                    success: true,
-                    value: Instructions.createIN(result, lineNumber)
-                };
-            case "OUT":
-                return {
-                    success: true,
-                    value: Instructions.createOUT(result, lineNumber)
-                };
+            case "IN": return Instructions.createIN(result, lineNumber);
+            case "OUT": return Instructions.createOUT(result, lineNumber);
         }
 
         throw new Error("Unknown instruction");
     }
 
-    private static createIN(result: LexerResult, lineNumber: number): InstructionBase {
+    private static createIN(result: LexerResult, lineNumber: number): Expected<InstructionBase, Diagnostic> {
         if (result.instruction != "IN") throw new Error();
-        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
+        if (result.address === undefined) return createError(Diagnostics.Missing_input_buf, lineNumber);
+        if (result.lengthAddress === undefined) return createError(Diagnostics.Missing_input_length_buf, lineNumber);
 
-        const out = new IN(lineNumber, result.label, result.address, result.lengthAddress);
+        const _in = new IN(lineNumber, result.label, result.address, result.lengthAddress);
 
-        return out;
+        return {
+            success: true,
+            value: _in
+        };
     }
 
-    private static createOUT(result: LexerResult, lineNumber: number): InstructionBase {
+    private static createOUT(result: LexerResult, lineNumber: number): Expected<InstructionBase, Diagnostic> {
         if (result.instruction != "OUT") throw new Error();
-        if (result.address == undefined || result.lengthAddress == undefined) throw new Error();
+        if (result.address == undefined) return createError(Diagnostics.Missing_output_buf, lineNumber);
+        if (result.lengthAddress == undefined) return createError(Diagnostics.Missing_output_length_buf, lineNumber);
 
         const out = new OUT(lineNumber, result.label, result.address, result.lengthAddress);
 
-        return out;
+        return {
+            success: true,
+            value: out
+        };
     }
 
 
@@ -179,7 +195,7 @@ export class Instructions {
     private static createDS(result: LexerResult, lineNumber: number): Expected<InstructionBase | Array<InstructionBase>, Diagnostic> {
         const { instruction, wordCount } = result;
         if (instruction != "DS") throw new Error();
-        if (wordCount === undefined) throw new Error();
+        if (wordCount === undefined) return createError(Diagnostics.Missing_word_count, lineNumber);
 
         if (wordCount == 0) {
             // 語数が0の場合領域は確保しないがラベルは有効である
@@ -205,7 +221,7 @@ export class Instructions {
 
     private static createDC(result: LexerResult, lineNumber: number): Expected<InstructionBase | Array<InstructionBase>, Diagnostic> {
         if (result.instruction != "DC") throw new Error();
-        if (result.consts == undefined) throw new Error();
+        if (result.consts === undefined) return createError(Diagnostics.Missing_constans, lineNumber);
 
         const errors: Array<Diagnostic> = [];
 

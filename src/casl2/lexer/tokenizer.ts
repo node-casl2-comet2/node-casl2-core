@@ -83,7 +83,6 @@ export function splitToTokens(line: string, lineNumber: number): Expected<Array<
 
     return {
         success: true,
-        value: result,
-        errors: [error()]
+        value: result
     };
 }
