@@ -10,7 +10,7 @@ import { TokenInfo } from "../casl2/lexer/token";
 export class InstructionBase implements Instruction {
     private _instructionName: string;
     private _lineNumber: number;
-    private _isConfirmed: boolean;
+    protected _isConfirmed: boolean;
     private _r1: GR | undefined;
     private _r2: GR | undefined;
     private _address: number | string | undefined;
