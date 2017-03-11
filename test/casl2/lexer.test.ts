@@ -1,152 +1,53 @@
 "use strict";
 
-import { Lexer } from "../../src/casl2/lexer";
-import { LexerResult } from "../../src/casl2/lexerResult";
-import { Diagnostic } from "../../src/diagnostics/types";
-import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import * as assert from "assert";
-import { Diagnostics } from "../../src/diagnostics/diagnosticMessages";
-import { createDiagnostic } from "../../src/diagnostics/diagnosticMessage";
+import { splitToTokens } from "../../src/casl2/lexer/lexer";
+import { TokenInfo, TokenType } from "../../src/casl2/lexer/token";
 
-function getLexerResult(s: string): LexerResult {
-    const result = Lexer.tokenize(s, 3);
-
-    assert(result.success);
-    const r = result.value!;
-
-    return r;
+function createTokenInfo(token: string, type: TokenType, startIndex: number, endIndex: number): TokenInfo {
+    return {
+        value: token,
+        type: type,
+        line: 1,
+        startIndex: startIndex,
+        endIndex: endIndex
+    };
 }
 
-suite("Lexer test", () => {
-    test("tokenize test: label + instruction no args", () => {
-        const line = "CASL2 START";
-        const r = getLexerResult(line);
+function testSplitToTokens(line: string, expected: Array<[string, TokenType, number, number]>) {
+    const tokens = splitToTokens(line, 1);
+    assert(tokens.success);
 
-        assert.equal(r.label, "CASL2");
-        assert.equal(r.instruction, "START");
-        assert.equal(r.r1, undefined);
-        assert.equal(r.r2, undefined);
-        assert.equal(r.address, undefined);
-        assert.equal(r.comment, undefined);
+    const expected2 = expected.map(x => {
+        const [a, b, c, d] = x;
+        return createTokenInfo(a, b, c, d);
     });
 
-    test("tokenize test: instruction (no args)", () => {
-        const line = "NOP";
-        const r = getLexerResult(line);
+    assert.deepEqual(tokens.value!, expected2);
+}
 
-        assert.equal(r.label, undefined);
-        assert.equal(r.instruction, "NOP");
-        assert.equal(r.r1, undefined);
-        assert.equal(r.r2, undefined);
-        assert.equal(r.address, undefined);
-        assert.equal(r.comment, undefined);
-    });
-
-    test("tokenize test: label + instruction r1, r2", () => {
-        const line = "ADD    ADDA GR0, GR1";
-        const r = getLexerResult(line);
-
-        assert.equal(r.label, "ADD");
-        assert.equal(r.instruction, "ADDA");
-        assert.equal(r.r1, GR.GR0);
-        assert.equal(r.r2, GR.GR1);
-        assert.equal(r.address, undefined);
-        assert.equal(r.comment, undefined);
-    });
-
-    test("tokenize test: instruction + r1, r2 + comment", () => {
-        const line = "ADDA GR0, GR1 ;windows";
-        const r = getLexerResult(line);
-
-        assert.equal(r.label, undefined);
-        assert.equal(r.instruction, "ADDA");
-        assert.equal(r.r1, GR.GR0);
-        assert.equal(r.r2, GR.GR1);
-        assert.equal(r.address, undefined);
-        assert.equal(r.comment, ";windows");
-    });
-
-    test("tokenize test: label + instruction + r, adr(number), x", () => {
-        const line = "L1   LAD GR0, 3, GR1";
-        const r = getLexerResult(line);
-
-        assert.equal(r.label, "L1");
-        assert.equal(r.instruction, "LAD");
-        assert.equal(r.r1, GR.GR0);
-        assert.equal(r.r2, GR.GR1);
-        assert.equal(r.address, 3);
-        assert.equal(r.comment, undefined);
-    });
-
-    test("tokenize test: instruction + r, adr(label), x", () => {
-        const line = "LAD GR0, ONE, GR1";
-        const r = getLexerResult(line);
-
-        assert.equal(r.label, undefined);
-        assert.equal(r.instruction, "LAD");
-        assert.equal(r.r1, GR.GR0);
-        assert.equal(r.r2, GR.GR1);
-        assert.equal(r.address, "ONE");
-        assert.equal(r.comment, undefined);
-    });
-
-    test("tokenize test: comment", () => {
-        const line = "; THIS IS COMMENT";
-        const r = getLexerResult(line);
-
-        assert.equal(r.label, undefined);
-        assert.equal(r.instruction, undefined);
-        assert.equal(r.r1, undefined);
-        assert.equal(r.r2, undefined);
-        assert.equal(r.address, undefined);
-        assert.equal(r.comment, "; THIS IS COMMENT");
-    });
-
-    // 不明な命令はエラー
-    test("tokenize error test: invalid instruction", () => {
-        // MUL命令は存在しない
-        const line = "L1   MUL GR1, GR2";
-        const result = Lexer.tokenize(line, 3);
-
-        assert(!result.success);
-        const error = result.errors![0];
-        assert.deepEqual(error, createDiagnostic(3, 0, 0, Diagnostics.Invalid_instruction_0_, "MUL"));
-    });
-
-    // ラベル名に不正な文字を含んでいる
-    suite("tokenize error test: invalid character used for label", () => {
-        // 小文字を使っている
-        test("lower case", () => {
-            const line = "l1  ADDA    GR1, GR2";
-            const result = Lexer.tokenize(line, 3);
-
-
-            assert(!result.success);
-            const error = result.errors![0];
-            assert.deepEqual(error, createDiagnostic(3, 0, 0, Diagnostics.Invalid_label_0_, "l1"));
-        });
-
-        // TODO: エラーチェックをする
-        // ラベル名の一文字目が数字である
-        test("first character is a number", () => {
-            const line = "1L  ADDA GR1, GR2";
-            const result = Lexer.tokenize(line, 3);
-            assert(!result.success);
-        });
-    });
-
-    // ラベル名は8文字まで有効
-    test("tokenize test: label name can be up to 8 characters", () => {
-        const line = "ABCDEFGH  ADDA    GR1, GR2";
-        const result = Lexer.tokenize(line, 3);
-        assert(result.success);
-    });
-
-    // TODO: エラーチェックをする
-    // ラベル名が長すぎる(9文字以上)
-    test("tokenize error test: too long label name", () => {
-        const line = "ABCDEFGHI  ADDA    GR1, GR2";
-        const result = Lexer.tokenize(line, 3);
-        assert(!result.success);
+suite("lexer test", () => {
+    test("splitToTokens", () => {
+        const line = "L1 LAD GR1,10,#20,'ABC',=10,=#20,='ABC'; HELLO";
+        testSplitToTokens(line, [
+            ["L1", TokenType.TLABEL, 0, 2],
+            [" ", TokenType.TSPACE, 2, 3],
+            ["LAD", TokenType.TINSTRUCTION, 3, 6],
+            [" ", TokenType.TSPACE, 6, 7],
+            ["GR1", TokenType.TGR, 7, 10],
+            [",", TokenType.TCOMMA, 10, 11],
+            ["10", TokenType.TDECIMAL, 11, 13],
+            [",", TokenType.TCOMMA, 13, 14],
+            ["#20", TokenType.THEX, 14, 17],
+            [",", TokenType.TCOMMA, 17, 18],
+            ["'ABC'", TokenType.TSTRING, 18, 23],
+            [",", TokenType.TCOMMA, 23, 24],
+            ["=10", TokenType.TDECIMALLITERAL, 24, 27],
+            [",", TokenType.TCOMMA, 27, 28],
+            ["=#20", TokenType.THEXLITERAL, 28, 32],
+            [",", TokenType.TCOMMA, 32, 33],
+            ["='ABC'", TokenType.TSTRINGLITERAL, 33, 39],
+            ["; HELLO", TokenType.TCOMMENT, 39, 46]
+        ]);
     });
 });

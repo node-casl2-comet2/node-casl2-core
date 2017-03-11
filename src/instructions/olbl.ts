@@ -8,6 +8,6 @@ import { InstructionBase } from "./instructionBase";
  */
 export class OLBL extends InstructionBase {
     constructor(lineNumber: number, label: string | undefined) {
-        super("OLBL", lineNumber, undefined, label);
+        super("OLBL", lineNumber, -1, label);
     }
 }

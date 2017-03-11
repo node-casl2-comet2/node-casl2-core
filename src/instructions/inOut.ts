@@ -49,3 +49,17 @@ export class INOUT extends InstructionBase {
         return typeof this.address == "number" && typeof this._lengthAddress == "number";
     }
 }
+
+export class IN extends INOUT {
+    constructor(lineNumber: number, label: string | undefined, inAddress: number | string, inLengthAddress: number | string) {
+        super("IN", lineNumber, 0x90, label, undefined, undefined, inAddress);
+        this._lengthAddress = inLengthAddress;
+    }
+}
+
+export class OUT extends INOUT {
+    constructor(lineNumber: number, label: string | undefined, outAddress: number | string, outLengthAddress: number | string) {
+        super("OUT", lineNumber, 0x91, label, undefined, undefined, outAddress);
+        this._lengthAddress = outLengthAddress;
+    }
+}

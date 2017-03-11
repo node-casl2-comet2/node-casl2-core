@@ -5,8 +5,8 @@ import { InstructionBase } from "./instructionBase";
 export class MDC extends InstructionBase {
     private _charLiteral: string | undefined;
 
-    constructor(label: string | undefined, address?: number | string, charLiteral?: string) {
-        super("MDC", undefined, undefined, label, undefined, undefined, address);
+    constructor(label: string | undefined, lineNumber = -1, address?: number | string, charLiteral?: string) {
+        super("MDC", lineNumber, -1, label, undefined, undefined, address);
         this._charLiteral = charLiteral;
     }
 

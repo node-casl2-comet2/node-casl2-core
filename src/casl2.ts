@@ -1,9 +1,7 @@
 "use strict";
 
-import { Instructions } from "./instructions/instructions";
 import { InstructionBase } from "./instructions/instructionBase";
-import { Lexer } from "./casl2/lexer";
-import { LexerResult } from "./casl2/lexerResult";
+import { TokenType } from "./casl2/lexer/token";
 import { CompileResult } from "./compileResult";
 import { LabelMap } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
@@ -12,6 +10,10 @@ import { LexerOption } from "./casl2/lexerOption";
 import { Diagnostic } from "./diagnostics/types";
 import { createDiagnostic } from "./diagnostics/diagnosticMessage";
 import { Diagnostics } from "./diagnostics/diagnosticMessages";
+
+import { parseAll } from "./casl2/parser/parser"
+import { splitToTokens } from "./casl2/lexer/lexer";
+import { TokenInfo } from "./casl2/lexer/token";
 
 const defaultCompileOption: Casl2CompileOption = {
     useGR8: false,
@@ -52,54 +54,30 @@ export class Casl2 {
             }
         }
 
-        // レキサーを生成する
-        const lexer = new Lexer(lexerOption);
-
         // フェーズ1
+
+        const tokensList: Array<Array<TokenInfo>> = [];
+
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lineNumber = i + 1;
-
-            // 空行なら無視する
             if (line.trim() === "") continue;
 
-            const tokenizeResult = lexer.tokenize(line, lineNumber);
-            if (tokenizeResult.success) {
-                const lexerResult = tokenizeResult.value;
-                if (!lexerResult) throw new Error();
-
-                if (lexerResult.isCommentLine) {
-                    // コメント行なので無視する
-                } else {
-                    const dsOrDc = lexerResult.instruction === "DS" || lexerResult.instruction === "DC";
-                    const createInstructionResult = dsOrDc
-                        ? Instructions.createDSDC(lexerResult, lineNumber)
-                        : Instructions.create(lexerResult, lineNumber);
-
-                    if (createInstructionResult.success) {
-                        const inst = createInstructionResult.value;
-                        if (inst === undefined) throw new Error();
-
-                        if (inst instanceof InstructionBase) {
-                            instructions.push(inst);
-                        }
-                        else {
-                            inst.forEach(x => instructions.push(x));
-                        }
-                    } else {
-                        const { errors } = createInstructionResult;
-                        // コンパイルエラー
-                        if (errors) {
-                            pushDiagnostics(errors);
-                        }
-                    }
-                }
+            const tokens = splitToTokens(line, lineNumber);
+            if (tokens.success) {
+                tokensList.push(tokens.value!);
             } else {
-                if (tokenizeResult.errors) {
-                    pushDiagnostics(tokenizeResult.errors);
-                }
+                pushDiagnostics(tokens.errors!);
             }
         }
+
+        const result = parseAll(tokensList);
+        if (result.success) {
+            result.value!.forEach(x => instructions.push(x));
+        } else {
+            pushDiagnostics(result.errors!);
+        }
+
 
         // フェーズ2
         // =で宣言されたリテラルをDC命令として配置する
@@ -107,25 +85,31 @@ export class Casl2 {
             const literal = inst.getLiteral();
             if (literal != undefined) {
                 const label = RandomLabelGenerator.generate();
-                // 命令のリテラル部分をDC命令のラベとと置き換える
+                // 命令のリテラル部分をDC命令のラベルと置き換える
                 inst.replaceLiteralWithLabel(label);
 
-                // リテラルをオペランドとするDC命令を生成する
-                const lexerResult = new LexerResult(label, "DC", undefined, undefined, undefined, undefined, undefined, [literal]);
-                const createDSDCResult = Instructions.createDSDC(lexerResult, inst.lineNumber!);
+                const l = {
+                    value: label,
+                    type: TokenType.TLABEL,
+                    line: -1,
+                    startIndex: -1,
+                    endIndex: -1
+                };
 
-                if (createDSDCResult.success) {
-                    const dc = createDSDCResult.value;
+                // リテラルをオペランドとするDC命令を生成する
+                const dcLine = `    DC    ${literal}`;
+                const mdcs = parseAll([splitToTokens(dcLine, 1).value!]);
+
+                mdcs.value![0].setLabel(label);
+
+                if (mdcs.success) {
+                    const dc = mdcs.value;
                     if (dc === undefined) throw new Error();
 
                     // 生成したDC命令を追加する
-                    if (dc instanceof InstructionBase) {
-                        generatedInstructions.push(dc);
-                    } else {
-                        dc.forEach(mdc => generatedInstructions.push(mdc));
-                    }
+                    dc.forEach(mdc => generatedInstructions.push(mdc));
                 } else {
-                    const { errors } = createDSDCResult;
+                    const { errors } = mdcs;
                     if (errors === undefined) throw new Error();
 
                     pushDiagnostics(errors);
@@ -166,7 +150,7 @@ export class Casl2 {
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
-            const compileError = () => diagnostics.push(createDiagnostic(inst.lineNumber!, 0, 0, Diagnostics.Duplicate_label_0_, inst.label));
+            const compileError = () => diagnostics.push(createDiagnostic(inst.lineNumber!, 0, 0, Diagnostics.Duplicate_label_0_, inst.label!));
 
             inst.setScope(scope);
 
@@ -202,6 +186,12 @@ export class Casl2 {
             const error = inst.resolveAddress(labelMap);
             if (error) {
                 diagnostics.push(error);
+            }
+        }
+
+        for (const inst of instructions) {
+            for (const d of inst.check()) {
+                diagnostics.push(d);
             }
         }
 

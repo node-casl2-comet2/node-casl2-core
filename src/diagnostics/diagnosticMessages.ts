@@ -18,10 +18,10 @@ export const Diagnostics = {
         category: DiagnosticCategory.Error,
         message: "'{0}' は不正な命令です。"
     },
-    Invalid_label_0_: {
+    Too_long_label_name: {
         code: 4,
         category: DiagnosticCategory.Error,
-        message: "'{0}' は不正なラベルです。"
+        message: "ラベル名は8文字以内である必要があります。"
     },
     Invalid_instruction_line: {
         code: 5,

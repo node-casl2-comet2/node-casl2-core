@@ -5,23 +5,24 @@ import { LabelMap } from "../data/labelMap";
 import { Diagnostic } from "../diagnostics/types";
 import { createDiagnostic } from "../diagnostics/diagnosticMessage";
 import { Diagnostics } from "../diagnostics/diagnosticMessages";
+import { TokenInfo } from "../casl2/lexer/token";
 
 export class InstructionBase implements Instruction {
     private _instructionName: string;
-    private _lineNumber: number | undefined;
+    private _lineNumber: number;
     private _isConfirmed: boolean;
     private _r1: GR | undefined;
     private _r2: GR | undefined;
     private _address: number | string | undefined;
     private _label: string | undefined;
-    private _code: number | undefined;
+    private _code: number;
     private _byteLength: number;
     private _scope: number;
 
     constructor(
         instructionName: string,
-        lineNumber: number | undefined,
-        code: number | undefined,
+        lineNumber: number,
+        code: number,
         label?: string | undefined,
         r1?: GR | undefined,
         r2?: GR | undefined,
@@ -46,7 +47,7 @@ export class InstructionBase implements Instruction {
             this._isConfirmed = true;
         }
 
-        this._byteLength = code != undefined ? InstructionBase.byteLengthMap.get(code)! : 0;
+        this._byteLength = code != -1 ? InstructionBase.byteLengthMap.get(code)! : 0;
     }
 
     public get instructionName() {
@@ -59,6 +60,10 @@ export class InstructionBase implements Instruction {
 
     public setAddress(address: number) {
         this._address = address;
+    }
+
+    public setLabel(label: string) {
+        this._label = label;
     }
 
     /**
@@ -77,7 +82,7 @@ export class InstructionBase implements Instruction {
         if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
 
         // .comファイルに還元されない命令は空配列を返す
-        if (this._code == undefined) return [];
+        if (this._code === -1) return [];
 
         let hex = this._code;
 
@@ -185,6 +190,19 @@ export class InstructionBase implements Instruction {
      */
     public setScope(scope: number) {
         this._scope = scope;
+    }
+
+    public check(): Array<Diagnostic> {
+        const diagnostics: Array<Diagnostic> = [];
+        if (this._label !== undefined) {
+            const l = this._label;
+            // ラベルの長さをチェック
+            if (l.length > 8) {
+                diagnostics.push(createDiagnostic(this._lineNumber, 0, 0, Diagnostics.Too_long_label_name));
+            }
+        }
+
+        return diagnostics;
     }
 
     // 参考URL: http://www.officedaytime.com/dcasl2/pguide/qref.html
