@@ -112,39 +112,33 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
             return scanner.get(2);
         }
 
-        function consumeToken(t: TokenType, pushError = true): boolean {
-            const token = nextToken();
-            const r = token.type == t;
-            if (!r && pushError) {
-                diagnostics.push(createDiagnostic(line, token.startIndex, Number.MAX_VALUE, Diagnostics._0_expected, tokenToString(t)));
-            }
+        function consume(t: TokenType, validateFunc: (t: TokenType) => boolean, reportError = true): boolean {
+            if (getNextToken().type == TokenType.TUNKNOWN) {
+                if (reportError) {
+                    diagnostics.push(createDiagnostic(line, token().endIndex, Number.MAX_VALUE, Diagnostics._0_expected, tokenToString(t)));
+                }
+                return false;
+            } else {
+                const token = nextToken();
+                const r = validateFunc(token.type);
+                if (!r && reportError) {
+                    diagnostics.push(createDiagnostic(line, token.startIndex, Number.MAX_VALUE, Diagnostics._0_expected, tokenToString(t)));
+                }
 
-            return r;
+                return r;
+            }
+        }
+
+        function consumeToken(type: TokenType, reportError = true): boolean {
+            return consume(type, t => t == type, reportError);
         }
 
         function consumeAdr(): boolean {
-            const token = nextToken();
-            const t = token.type;
-            const r = isAddressToken(t);
-
-            if (!r) {
-                diagnostics.push(createDiagnostic(line, token.startIndex, Number.MAX_VALUE, Diagnostics._0_expected, "アドレス"));
-            }
-
-            return r;
+            return consume(TokenType.TADDRESS, isAddressToken);
         }
 
         function consumeConstant(): boolean {
-            const token = nextToken();
-            const t = token.type;
-            const r = t == TokenType.TDECIMAL || t == TokenType.THEX
-                || t == TokenType.TSTRING || t == TokenType.TLABEL;
-
-            if (!r) {
-                diagnostics.push(createDiagnostic(line, token.startIndex, Number.MAX_VALUE, Diagnostics._0_expected, "定数"));
-            }
-
-            return r;
+            return consume(TokenType.TCONSTANT, isConstantToken);
         }
 
         function consumeGR(): boolean {
@@ -498,7 +492,7 @@ function toConst(token: TokenInfo): number | string {
     throw new Error();
 }
 
-function isAddressToken(t: TokenType) {
+function isAddressToken(t: TokenType): boolean {
     const r = t == TokenType.TLABEL
         || t == TokenType.TINSTRUCTION
         || t == TokenType.TDECIMAL
@@ -506,6 +500,13 @@ function isAddressToken(t: TokenType) {
         || t == TokenType.TDECIMALLITERAL
         || t == TokenType.THEXLITERAL
         || t == TokenType.TSTRINGLITERAL;
+
+    return r;
+}
+
+function isConstantToken(t: TokenType): boolean {
+    const r = t == TokenType.TDECIMAL || t == TokenType.THEX
+        || t == TokenType.TSTRING || t == TokenType.TLABEL;
 
     return r;
 }
@@ -521,5 +522,7 @@ const tokenMap: Map<TokenType, string> = new Map([
     [TokenType.TSTRINGLITERAL, "文字定数リテラル"],
     [TokenType.TDECIMAL, "10進定数"],
     [TokenType.THEX, "16進定数"],
-    [TokenType.TSTRING, "文字定数"]
+    [TokenType.TSTRING, "文字定数"],
+    [TokenType.TADDRESS, "アドレス"],
+    [TokenType.TCONSTANT, "定数"]
 ]);

@@ -27,6 +27,9 @@ export enum TokenType {
     TLABEL,
     TSTRING,
     TCOMMENT,
+
+    TADDRESS,
+    TCONSTANT,
     TUNKNOWN
 };
 
@@ -35,7 +38,7 @@ export const TokenDefinitions: Array<TokenDefinition> = [
     new TokenDefinition(TokenType.TGR, /GR\d/),
     new TokenDefinition(TokenType.TLABEL, /[A-Z][0-9A-Z]*/),
     new TokenDefinition(TokenType.TSPACE, /\s+/),
-    new TokenDefinition(TokenType.TCOMMASPACE, /,\s*/),
+    new TokenDefinition(TokenType.TCOMMASPACE, /\s*,\s*/),
     new TokenDefinition(TokenType.TDECIMALLITERAL, /=-?\d+/),
     new TokenDefinition(TokenType.THEXLITERAL, /=#[0-9A-F]+/),
     new TokenDefinition(TokenType.TSTRINGLITERAL, /='(('')|[^'])+?'/),

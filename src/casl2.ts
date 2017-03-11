@@ -60,7 +60,7 @@ export class Casl2 {
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            const lineNumber = i + 1;
+            const lineNumber = i;
             if (line.trim() === "") continue;
 
             const tokens = splitToTokens(line, lineNumber);
@@ -150,7 +150,8 @@ export class Casl2 {
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
-            const compileError = () => diagnostics.push(createDiagnostic(inst.lineNumber!, 0, 0, Diagnostics.Duplicate_label_0_, inst.label!));
+            const compileError = () =>
+                diagnostics.push(createDiagnostic(inst.lineNumber!, 0, 0, Diagnostics.Duplicate_label_0_, inst.label!));
 
             inst.setScope(scope);
 

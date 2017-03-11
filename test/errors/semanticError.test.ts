@@ -28,6 +28,6 @@ suite("semantic error", () => {
         const diagnostics = casl2.analyze(["ABCDEFGHI  ADDA    GR1, GR2"]).diagnostics;
         assert(diagnostics.length == 1);
 
-        assert.deepEqual(diagnostics[0], createDiagnostic(1, 0, 0, Diagnostics.Too_long_label_name));
+        assert.deepEqual(diagnostics[0], createDiagnostic(0, 0, 0, Diagnostics.Too_long_label_name));
     });
 });
