@@ -42,19 +42,6 @@ class Scanner {
         return this._index >= this._tokens.length;
     }
 
-    getNext() {
-        if (!this.allScan()) {
-            const t = this._tokens[this._index];
-            return t;
-        } else {
-            return unknownToken;
-        }
-    }
-
-    getNextNext() {
-        return this.get(2);
-    }
-
     get(offset: number) {
         if (this._index < this._tokens.length - (offset - 1)) {
             return this._tokens[this._index + (offset - 1)];
@@ -118,11 +105,11 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
 
         // 先読み
         function getNextToken() {
-            return scanner.getNext();
+            return scanner.get(1);
         }
 
         function getNextNextToken() {
-            return scanner.getNextNext();
+            return scanner.get(2);
         }
 
         function consumeToken(t: TokenType, pushError = true): boolean {
@@ -158,10 +145,6 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
             }
 
             return r;
-        }
-
-        function consumeCommaSpace(pushError = true): boolean {
-            return consumeToken(TokenType.TCOMMASPACE, pushError);
         }
 
         function consumeGR(): boolean {
@@ -221,7 +204,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                     case ArgumentType.adr_adr:
                         if (consumeAdr()) {
                             const adr1 = toAddress(token());
-                            if (consumeCommaSpace() && consumeAdr()) {
+                            if (consumeToken(TokenType.TCOMMASPACE) && consumeAdr()) {
                                 const adr2 = toAddress(token());
                                 if (allScan()) {
                                     switch (info.instructionName) {
@@ -246,7 +229,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                             if (allScan(false)) {
                                 instruction = new InstructionBase(info.instructionName, line, info.code, undefined, undefined, undefined, adr);
                             } else {
-                                if (consumeCommaSpace() && consumeGR()) {
+                                if (consumeToken(TokenType.TCOMMASPACE) && consumeGR()) {
                                     const r2 = stringToGR(token().value);
                                     if (allScan()) {
                                         instruction = new InstructionBase(info.instructionName, line, info.code, undefined, undefined,
@@ -362,7 +345,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                                     // 最初の命令にだけラベルと行番号を与える
                                     addMDC(constant, label, line);
 
-                                    while (consumeCommaSpace(false)) {
+                                    while (consumeToken(TokenType.TCOMMASPACE, false)) {
                                         if (consumeConstant()) {
                                             const constant = toConst(token());
                                             // TODO: 命令を配置する
@@ -406,7 +389,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                             // r1, r2
                             if (consumeToken(TokenType.TGR)) {
                                 const r1 = stringToGR(token().value);
-                                if (consumeCommaSpace()) {
+                                if (consumeToken(TokenType.TCOMMASPACE)) {
                                     if (consumeToken(TokenType.TGR) && allScan()) {
                                         const r2 = stringToGR(token().value);
                                         instruction = new InstructionBase(info.instructionName, line, info.code + 4, label, r1, r2);
@@ -424,13 +407,13 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
             function createInstruction_r1_adr_r2(info: InstructionInfo) {
                 if (consumeToken(TokenType.TGR)) {
                     const r1 = stringToGR(token().value);
-                    if (consumeCommaSpace() && consumeAdr()) {
+                    if (consumeToken(TokenType.TCOMMASPACE) && consumeAdr()) {
                         const address = toAddress(token());
                         if (allScan(false)) {
                             instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address);
                         } else {
                             // r1, adr, r2
-                            if (consumeCommaSpace() && consumeToken(TokenType.TGR) && allScan()) {
+                            if (consumeToken(TokenType.TCOMMASPACE) && consumeToken(TokenType.TGR) && allScan()) {
                                 const r2 = stringToGR(token().value);
                                 instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address);
                             }
