@@ -118,13 +118,20 @@ export class InstructionBase implements Instruction {
         const adr = this._address as string;
         const resolvedAddress = labelMap.get(adr, this.scope);
         if (resolvedAddress == undefined) {
-            return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
+            const [s, e] = this.getTokenIndex(this._originalTokens.address);
+            return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
         }
 
         this._address = resolvedAddress;
         this._isConfirmed = true;
 
         return undefined;
+    }
+
+    protected getTokenIndex(token: TokenInfo | undefined) {
+        const startIndex = token ? token.startIndex : 0;
+        const endIndex = token ? token.endIndex : 0;
+        return [startIndex, endIndex];
     }
 
     public get label() {

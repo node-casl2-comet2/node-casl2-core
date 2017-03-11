@@ -31,7 +31,8 @@ export class INOUT extends InstructionBase {
             const adr = this.address as string;
             const resolvedAddress = labelMap.get(adr, this.scope);
             if (resolvedAddress == undefined) {
-                return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
+                const [s, e] = this.getTokenIndex(this._originalTokens.buf);
+                return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
             }
             this.setAddress(resolvedAddress);
         }
@@ -39,7 +40,8 @@ export class INOUT extends InstructionBase {
             const adr = this._lengthAddress;
             const resolvedAddress = labelMap.get(adr, this.scope);
             if (resolvedAddress == undefined) {
-                return createDiagnostic(this.lineNumber!, 0, 0, Diagnostics.Undeclared_label_0_, adr);
+                const [s, e] = this.getTokenIndex(this._originalTokens.length);
+                return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
             }
             this._lengthAddress = resolvedAddress;
         }
