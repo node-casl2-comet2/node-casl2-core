@@ -52,8 +52,12 @@ class Scanner {
     }
 
     getNextNext() {
-        if (this._index < this._tokens.length - 1) {
-            return this._tokens[this._index + 1];
+        return this.get(2);
+    }
+
+    get(offset: number) {
+        if (this._index < this._tokens.length - (offset - 1)) {
+            return this._tokens[this._index + (offset - 1)];
         } else {
             return unknownToken;
         }
@@ -157,13 +161,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
         }
 
         function consumeCommaSpace(pushError = true): boolean {
-            if (!consumeToken(TokenType.TCOMMA, pushError)) return false;
-
-            if (getNextToken().type == TokenType.TSPACE) {
-                return consumeToken(TokenType.TSPACE, pushError);
-            } else {
-                return true;
-            }
+            return consumeToken(TokenType.TCOMMASPACE, pushError);
         }
 
         function consumeGR(): boolean {
@@ -394,46 +392,21 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                         }
                         break;
 
-
                     case ArgumentType.r1_adr_r2:
-                        if (consumeToken(TokenType.TGR)) {
-                            const r1 = stringToGR(token().value);
-                            if (consumeCommaSpace() && consumeAdr()) {
-                                const address = toAddress(token());
-                                if (allScan(false)) {
-                                    instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address);
-                                } else {
-                                    // r1, adr, r2
-                                    if (consumeCommaSpace() && consumeToken(TokenType.TGR) && allScan()) {
-                                        const r2 = stringToGR(token().value);
-                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address);
-                                    }
-                                }
-                            }
-                        }
+                        createInstruction_r1_adr_r2(info);
                         break;
 
                     // r1, r2 または r1, adr[, r2]
                     // r1, r2単体の命令は無い
                     case ArgumentType.r1_r2_OR_r1_adr_r2:
-                        if (consumeToken(TokenType.TGR)) {
-                            const r1 = stringToGR(token().value);
-                            if (consumeCommaSpace()) {
-                                if (isAddressToken(getNextToken().type)) {
-                                    // r1, adr
-                                    if (!consumeAdr()) throw new Error();
-                                    const address = toAddress(token());
-                                    if (allScan(false)) {
-                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address);
-                                    } else {
-                                        // r1, adr, r2
-                                        if (consumeCommaSpace() && consumeToken(TokenType.TGR) && allScan()) {
-                                            const r2 = stringToGR(token().value);
-                                            instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address);
-                                        }
-                                    }
-                                } else {
-                                    // r1, r2
+                        const next3Token = scanner.get(3);
+                        if (isAddressToken(next3Token.type)) {
+                            createInstruction_r1_adr_r2(info);
+                        } else {
+                            // r1, r2
+                            if (consumeToken(TokenType.TGR)) {
+                                const r1 = stringToGR(token().value);
+                                if (consumeCommaSpace()) {
                                     if (consumeToken(TokenType.TGR) && allScan()) {
                                         const r2 = stringToGR(token().value);
                                         instruction = new InstructionBase(info.instructionName, line, info.code + 4, label, r1, r2);
@@ -445,6 +418,24 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
 
                     default:
                         throw new Error();
+                }
+            }
+
+            function createInstruction_r1_adr_r2(info: InstructionInfo) {
+                if (consumeToken(TokenType.TGR)) {
+                    const r1 = stringToGR(token().value);
+                    if (consumeCommaSpace() && consumeAdr()) {
+                        const address = toAddress(token());
+                        if (allScan(false)) {
+                            instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address);
+                        } else {
+                            // r1, adr, r2
+                            if (consumeCommaSpace() && consumeToken(TokenType.TGR) && allScan()) {
+                                const r2 = stringToGR(token().value);
+                                instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -541,7 +532,7 @@ const tokenMap: Map<TokenType, string> = new Map([
     [TokenType.TGR, "GR"],
     [TokenType.TLABEL, "ラベル"],
     [TokenType.TSPACE, "空白"],
-    [TokenType.TCOMMA, ","],
+    [TokenType.TCOMMASPACE, ","],
     [TokenType.TDECIMALLITERAL, "10進定数リテラル"],
     [TokenType.THEXLITERAL, "16進定数リテラル"],
     [TokenType.TSTRINGLITERAL, "文字定数リテラル"],
