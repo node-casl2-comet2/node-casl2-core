@@ -13,7 +13,10 @@ function createInstructions(s: string): Array<InstructionBase> {
     const tokens = splitToTokens(s, 1);
     assert(tokens.success);
 
-    const parse = parseAll([tokens.value!]);
+    const map = new Map([
+        [1, tokens.value!]
+    ]);
+    const parse = parseAll(map);
 
     assert(parse.success);
 

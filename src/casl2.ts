@@ -21,6 +21,7 @@ const defaultCompileOption: Casl2CompileOption = {
 };
 
 export interface Casl2DiagnosticResult {
+    tokensMap: Map<number, Array<TokenInfo>>;
     diagnostics: Array<Diagnostic>;
     instructions: Array<InstructionBase>;
     generatedInstructions: Array<InstructionBase>;
@@ -36,6 +37,7 @@ export class Casl2 {
     analyze(lines: Array<string>): Casl2DiagnosticResult {
         const diagnostics: Array<Diagnostic> = [];
         const instructions: Array<InstructionBase> = [];
+        const tokensMap: Map<number, Array<TokenInfo>> = new Map();
 
         // ='A' → MDC 'A'のように自動生成される命令を格納する
         const generatedInstructions: Array<InstructionBase> = [];
@@ -56,8 +58,6 @@ export class Casl2 {
 
         // フェーズ1
 
-        const tokensList: Array<Array<TokenInfo>> = [];
-
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lineNumber = i;
@@ -65,13 +65,13 @@ export class Casl2 {
 
             const tokens = splitToTokens(line, lineNumber);
             if (tokens.success) {
-                tokensList.push(tokens.value!);
+                tokensMap.set(lineNumber, tokens.value!);
             } else {
                 pushDiagnostics(tokens.errors!);
             }
         }
 
-        const result = parseAll(tokensList);
+        const result = parseAll(tokensMap);
         if (result.success) {
             result.value!.forEach(x => instructions.push(x));
         } else {
@@ -90,7 +90,10 @@ export class Casl2 {
 
                 // リテラルをオペランドとするDC命令を生成する
                 const dcLine = `    DC    ${literal}`;
-                const mdcs = parseAll([splitToTokens(dcLine, 1).value!]);
+                const map = new Map([
+                    [1, splitToTokens(dcLine, 1).value!]
+                ]);
+                const mdcs = parseAll(map);
 
                 mdcs.value![0].setLabel(label);
 
@@ -189,6 +192,7 @@ export class Casl2 {
         }
 
         return {
+            tokensMap: tokensMap,
             diagnostics: diagnostics,
             instructions: instructions,
             generatedInstructions: generatedInstructions,

@@ -74,12 +74,12 @@ function createInstructionMap(info: Array<InstructionInfo>): Map<string, Instruc
 
 const instructionMap = createInstructionMap(instructionsInfo);
 
-export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<InstructionBase>, Diagnostic> {
+export function parseAll(tokensMap: Map<number, Array<TokenInfo>>): Expected<Array<InstructionBase>, Diagnostic> {
     const allDiagnostics: Array<Diagnostic> = [];
     const instructions: Array<InstructionBase> = [];
-    for (const tokens of tokensList) {
-        parse(tokens);
-    }
+    tokensMap.forEach((value, key) => {
+        parse(value, key);
+    });
 
     return {
         success: allDiagnostics.length == 0,
@@ -87,11 +87,10 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
         errors: allDiagnostics
     };
 
-    function parse(tokens: Array<TokenInfo>): void {
+    function parse(tokens: Array<TokenInfo>, line: number): void {
         const scanner = new Scanner(tokens);
         const diagnostics: Array<Diagnostic> = [];
         let instruction: InstructionBase | undefined = undefined;
-        const line = tokens[0].line || 0;
 
         let currentToken: TokenInfo = scanner.scan();
 
