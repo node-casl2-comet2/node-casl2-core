@@ -7,32 +7,31 @@ import { createDiagnostic } from "../diagnostics/diagnosticMessage";
 import { Diagnostics } from "../diagnostics/diagnosticMessages";
 import { TokenInfo } from "../casl2/lexer/token";
 
+export interface OriginalTokens {
+    instruction?: TokenInfo;
+    label?: TokenInfo;
+    r1?: TokenInfo;
+    r2?: TokenInfo;
+    address?: TokenInfo;
+    buf?: TokenInfo;
+    length?: TokenInfo;
+}
+
 export class InstructionBase implements Instruction {
-    private _instructionName: string;
-    private _lineNumber: number;
     protected _isConfirmed: boolean;
-    private _r1: GR | undefined;
-    private _r2: GR | undefined;
     private _address: number | string | undefined;
-    private _label: string | undefined;
-    private _code: number;
     private _byteLength: number;
     private _scope: number;
+    protected _originalTokens: OriginalTokens = {};
 
     constructor(
-        instructionName: string,
-        lineNumber: number,
-        code: number,
-        label?: string | undefined,
-        r1?: GR | undefined,
-        r2?: GR | undefined,
+        private _instructionName: string,
+        private _lineNumber: number,
+        private _code: number,
+        private _label?: string | undefined,
+        private _r1?: GR | undefined,
+        private _r2?: GR | undefined,
         address?: number | string | undefined) {
-        this._instructionName = instructionName;
-        this._lineNumber = lineNumber;
-        this._code = code;
-        this._label = label;
-        this._r1 = r1;
-        this._r2 = r2;
 
         if (address !== undefined) {
             this._address = address;
@@ -47,7 +46,12 @@ export class InstructionBase implements Instruction {
             this._isConfirmed = true;
         }
 
-        this._byteLength = code != -1 ? InstructionBase.byteLengthMap.get(code)! : 0;
+        this._byteLength = this._code != -1 ? InstructionBase.byteLengthMap.get(this._code)! : 0;
+    }
+
+    public setOriginalTokens(originalTokens: OriginalTokens) {
+        this._originalTokens = originalTokens;
+        return this;
     }
 
     public get instructionName() {
@@ -198,7 +202,11 @@ export class InstructionBase implements Instruction {
             const l = this._label;
             // ラベルの長さをチェック
             if (l.length > 8) {
-                diagnostics.push(createDiagnostic(this._lineNumber, 0, 0, Diagnostics.Too_long_label_name));
+                const { label } = this._originalTokens;
+                const startIndex = label !== undefined ? label.startIndex : 0;
+                const endIndex = label !== undefined ? label.endIndex : 0;
+
+                diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Too_long_label_name));
             }
         }
 

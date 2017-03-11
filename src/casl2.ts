@@ -88,14 +88,6 @@ export class Casl2 {
                 // 命令のリテラル部分をDC命令のラベルと置き換える
                 inst.replaceLiteralWithLabel(label);
 
-                const l = {
-                    value: label,
-                    type: TokenType.TLABEL,
-                    line: -1,
-                    startIndex: -1,
-                    endIndex: -1
-                };
-
                 // リテラルをオペランドとするDC命令を生成する
                 const dcLine = `    DC    ${literal}`;
                 const mdcs = parseAll([splitToTokens(dcLine, 1).value!]);

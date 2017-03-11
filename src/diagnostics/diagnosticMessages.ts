@@ -21,7 +21,7 @@ export const Diagnostics = {
     Too_long_label_name: {
         code: 4,
         category: DiagnosticCategory.Error,
-        message: "ラベル名は8文字以内である必要があります。"
+        message: "ラベルは8文字以内である必要があります。"
     },
     Invalid_instruction_line: {
         code: 5,

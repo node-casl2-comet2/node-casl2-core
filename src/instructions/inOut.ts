@@ -5,6 +5,8 @@ import { LabelMap } from "../data/labelMap";
 import { Diagnostic } from "../diagnostics/types";
 import { createDiagnostic } from "../diagnostics/diagnosticMessage";
 import { Diagnostics } from "../diagnostics/diagnosticMessages";
+import { OriginalTokens } from "./instructionBase";
+import { TokenInfo } from "../casl2/lexer/token";
 
 export class INOUT extends InstructionBase {
     protected _lengthAddress: number | string;

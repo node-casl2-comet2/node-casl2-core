@@ -3,7 +3,7 @@
 import { TokenInfo, TokenType } from "../lexer/token";
 import { Expected } from "../../expected";
 import { Diagnostic, DiagnosticMessage } from "../../diagnostics/types";
-import { InstructionBase } from "../../instructions/instructionBase";
+import { InstructionBase, OriginalTokens } from "../../instructions/instructionBase";
 import { OLBL } from "../../instructions/olbl";
 import { MDC } from "../../instructions/mdc";
 import { IN, OUT } from "../../instructions/inOut";
@@ -18,9 +18,9 @@ import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
 const unknownToken: TokenInfo = {
     value: "",
     type: TokenType.TUNKNOWN,
-    line: -1,
-    startIndex: -1,
-    endIndex: -1
+    line: 0,
+    startIndex: 0,
+    endIndex: 0
 };
 
 class Scanner {
@@ -165,7 +165,7 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
         }
         // 命令と同じ名前もラベルに使用できる
         else if (token().type == TokenType.TLABEL || token().type == TokenType.TINSTRUCTION) {
-            const label = token().value;
+            const label = token();
 
             if (nextToken().type == TokenType.TSPACE) {
                 createInstruction(label);
@@ -183,7 +183,8 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
 
         diagnostics.forEach(x => allDiagnostics.push(x));
 
-        function createInstruction(label?: string) {
+        function createInstruction(labelToken?: TokenInfo) {
+            const label = labelToken ? labelToken.value : undefined;
             if (consumeToken(TokenType.TINSTRUCTION)) {
                 // 命令に応じて引数を処理する
                 const inst = token();
@@ -197,16 +198,24 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                 switch (info.argumentType) {
                     case ArgumentType.adr_adr:
                         if (consumeAdr()) {
-                            const adr1 = toAddress(token());
+                            const adr1Token = token();
+                            const adr1 = toAddress(adr1Token);
                             if (consumeToken(TokenType.TCOMMASPACE) && consumeAdr()) {
-                                const adr2 = toAddress(token());
+                                const adr2Token = token();
+                                const adr2 = toAddress(adr2Token);
                                 if (allScan()) {
+                                    const originalTokens: OriginalTokens = {
+                                        instruction: inst,
+                                        label: labelToken,
+                                        buf: adr1Token,
+                                        length: adr2Token
+                                    };
                                     switch (info.instructionName) {
                                         case "IN":
-                                            instruction = new IN(line, label, adr1, adr2);
+                                            instruction = new IN(line, label, adr1, adr2).setOriginalTokens(originalTokens);
                                             break;
                                         case "OUT":
-                                            instruction = new OUT(line, label, adr1, adr2);
+                                            instruction = new OUT(line, label, adr1, adr2).setOriginalTokens(originalTokens);
                                             break;
                                         default:
                                             throw new Error();
@@ -219,15 +228,27 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
 
                     case ArgumentType.adr_r2:
                         if (consumeAdr()) {
-                            const adr = toAddress(token());
+                            const addressToken = token();
+                            const adr = toAddress(addressToken);
                             if (allScan(false)) {
-                                instruction = new InstructionBase(info.instructionName, line, info.code, undefined, undefined, undefined, adr);
+                                instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined, undefined, adr)
+                                    .setOriginalTokens({
+                                        instruction: inst,
+                                        label: labelToken,
+                                        address: addressToken
+                                    });
                             } else {
                                 if (consumeToken(TokenType.TCOMMASPACE) && consumeGR()) {
-                                    const r2 = stringToGR(token().value);
+                                    const r2Token = token();
+                                    const r2 = stringToGR(r2Token.value);
                                     if (allScan()) {
-                                        instruction = new InstructionBase(info.instructionName, line, info.code, undefined, undefined,
-                                            r2, adr);
+                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined,
+                                            r2, adr).setOriginalTokens({
+                                                instruction: inst,
+                                                label: labelToken,
+                                                address: addressToken,
+                                                r2: r2Token
+                                            });
                                     }
                                 }
                             }
@@ -237,7 +258,10 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
 
                     case ArgumentType.none:
                         if (allScan()) {
-                            instruction = new InstructionBase(info.instructionName, line, info.code, label);
+                            instruction = new InstructionBase(info.instructionName, line, info.code, label)
+                                .setOriginalTokens({
+                                    instruction: inst
+                                });
                         }
                         break;
 
@@ -247,11 +271,21 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                             case "START":
                                 if (!allScan(false)) {
                                     if (consumeToken(TokenType.TSPACE) && consumeToken(TokenType.TLABEL) && allScan()) {
-                                        const address = toAddress(token());
-                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined, undefined, address);
+                                        const addressToken = token();
+                                        const address = toAddress(addressToken);
+                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined, undefined, address)
+                                            .setOriginalTokens({
+                                                instruction: inst,
+                                                label: labelToken,
+                                                address: addressToken
+                                            });
                                     }
                                 } else {
-                                    instruction = new InstructionBase(info.instructionName, line, info.code, label);
+                                    instruction = new InstructionBase(info.instructionName, line, info.code, label)
+                                        .setOriginalTokens({
+                                            instruction: inst,
+                                            label: labelToken
+                                        });
                                 }
                                 break;
 
@@ -264,7 +298,10 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                                     if (wordCount == 0) {
                                         // 語数が0の場合領域は確保しないがラベルは有効である
                                         // OLBL命令: ラベル名だけ有効でバイト長は0
-                                        const olbl = new OLBL(line, label);
+                                        const olbl = new OLBL(line, label)
+                                            .setOriginalTokens({
+                                                label: labelToken
+                                            });
                                         instructions.push(olbl);
                                     } else {
                                         // 語数と同じ数のNOP命令に置き換える
@@ -273,7 +310,11 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                                         const nop = nopInfo.instructionName;
                                         const nopCode = nopInfo.code;
 
-                                        instructions.push(new InstructionBase(nop, line, nopCode, label));
+                                        const instruction = new InstructionBase(nop, line, nopCode, label)
+                                            .setOriginalTokens({
+                                                label: labelToken
+                                            });
+                                        instructions.push(instruction);
                                         for (let i = 1; i < wordCount; i++) {
                                             instructions.push(new InstructionBase(nop, -1, nopCode));
                                         }
@@ -310,14 +351,18 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                                         return escaped;
                                     }
 
-                                    function splitStringLiteralToMdcs(stringToken: TokenInfo, label?: string, line?: number): void {
+                                    function splitStringLiteralToMdcs(stringToken: TokenInfo, labelToken?: TokenInfo, line?: number): void {
                                         if (stringToken.type != TokenType.TSTRING) throw new Error();
 
                                         const escaped = validateStringConstant(stringToken);
                                         if (escaped === undefined) return;
 
                                         const ch = escaped.charAt(0);
-                                        const mdc = new MDC(label, line, undefined, ch);
+                                        const label = labelToken ? labelToken.value : undefined;
+                                        const mdc = new MDC(label, line, undefined, ch)
+                                            .setOriginalTokens({
+                                                label: labelToken
+                                            });
                                         mdcs.push(mdc);
                                         for (let i = 1; i < escaped.length; i++) {
                                             const ch = escaped.charAt(i);
@@ -326,18 +371,22 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                                         }
                                     }
 
-                                    function addMDC(constant: string | number, label?: string, line?: number) {
+                                    function addMDC(constant: string | number, labelToken?: TokenInfo, line?: number) {
                                         if (token().type == TokenType.TSTRING) {
-                                            splitStringLiteralToMdcs(token(), label, line);
+                                            splitStringLiteralToMdcs(token(), labelToken, line);
                                         } else {
-                                            const mdc = new MDC(label, line, constant);
+                                            const label = labelToken ? labelToken.value : undefined;
+                                            const mdc = new MDC(label, line, constant)
+                                                .setOriginalTokens({
+                                                    label: labelToken
+                                                });
                                             mdcs.push(mdc);
                                         }
                                     }
 
                                     const constant = toConst(token());
                                     // 最初の命令にだけラベルと行番号を与える
-                                    addMDC(constant, label, line);
+                                    addMDC(constant, labelToken, line);
 
                                     while (consumeToken(TokenType.TCOMMASPACE, false)) {
                                         if (consumeConstant()) {
@@ -363,8 +412,14 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                     case ArgumentType.r:
                         if (consumeToken(TokenType.TGR)) {
                             if (allScan()) {
-                                const r1 = stringToGR(token().value);
-                                instruction = new InstructionBase(info.instructionName, line, info.code, label, r1);
+                                const r1Token = token();
+                                const r1 = stringToGR(r1Token.value);
+                                instruction = new InstructionBase(info.instructionName, line, info.code, label, r1)
+                                    .setOriginalTokens({
+                                        instruction: inst,
+                                        label: labelToken,
+                                        r1: r1Token
+                                    });
                             }
                         }
                         break;
@@ -382,11 +437,19 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                         } else {
                             // r1, r2
                             if (consumeToken(TokenType.TGR)) {
-                                const r1 = stringToGR(token().value);
+                                const r1Token = token();
+                                const r1 = stringToGR(r1Token.value);
                                 if (consumeToken(TokenType.TCOMMASPACE)) {
                                     if (consumeToken(TokenType.TGR) && allScan()) {
-                                        const r2 = stringToGR(token().value);
-                                        instruction = new InstructionBase(info.instructionName, line, info.code + 4, label, r1, r2);
+                                        const r2Token = token();
+                                        const r2 = stringToGR(r2Token.value);
+                                        instruction = new InstructionBase(info.instructionName, line, info.code + 4, label, r1, r2)
+                                            .setOriginalTokens({
+                                                instruction: inst,
+                                                label: labelToken,
+                                                r1: r1Token,
+                                                r2: r2Token
+                                            });
                                     }
                                 }
                             }
@@ -396,20 +459,36 @@ export function parseAll(tokensList: Array<Array<TokenInfo>>): Expected<Array<In
                     default:
                         throw new Error();
                 }
-            }
 
-            function createInstruction_r1_adr_r2(info: InstructionInfo) {
-                if (consumeToken(TokenType.TGR)) {
-                    const r1 = stringToGR(token().value);
-                    if (consumeToken(TokenType.TCOMMASPACE) && consumeAdr()) {
-                        const address = toAddress(token());
-                        if (allScan(false)) {
-                            instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address);
-                        } else {
-                            // r1, adr, r2
-                            if (consumeToken(TokenType.TCOMMASPACE) && consumeToken(TokenType.TGR) && allScan()) {
-                                const r2 = stringToGR(token().value);
-                                instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address);
+                function createInstruction_r1_adr_r2(info: InstructionInfo) {
+                    if (consumeToken(TokenType.TGR)) {
+                        const r1Token = token();
+                        const r1 = stringToGR(r1Token.value);
+                        if (consumeToken(TokenType.TCOMMASPACE) && consumeAdr()) {
+                            const addressToken = token();
+                            const address = toAddress(addressToken);
+                            if (allScan(false)) {
+                                instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, undefined, address)
+                                    .setOriginalTokens({
+                                        instruction: inst,
+                                        label: labelToken,
+                                        r1: r1Token,
+                                        address: addressToken
+                                    });
+                            } else {
+                                // r1, adr, r2
+                                if (consumeToken(TokenType.TCOMMASPACE) && consumeToken(TokenType.TGR) && allScan()) {
+                                    const r2Token = token();
+                                    const r2 = stringToGR(r2Token.value);
+                                    instruction = new InstructionBase(info.instructionName, line, info.code, label, r1, r2, address)
+                                        .setOriginalTokens({
+                                            instruction: inst,
+                                            label: labelToken,
+                                            r1: r1Token,
+                                            r2: r2Token,
+                                            address: addressToken
+                                        });
+                                }
                             }
                         }
                     }
