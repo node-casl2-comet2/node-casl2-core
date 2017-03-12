@@ -15,22 +15,22 @@ export class TokenDefinition {
 }
 
 export enum TokenType {
-    TGR,
-    TSPACE,
-    TINSTRUCTION,
-    TCOMMASPACE,
-    TDECIMALLITERAL,
-    THEXLITERAL,
-    TSTRINGLITERAL,
-    TDECIMAL,
-    THEX,
-    TLABEL,
-    TSTRING,
-    TCOMMENT,
+    TGR = 0,
+    TSPACE = 1,
+    TINSTRUCTION = 2,
+    TCOMMASPACE = 3,
+    TDECIMALLITERAL = 4,
+    THEXLITERAL = 5,
+    TSTRINGLITERAL = 6,
+    TDECIMAL = 7,
+    THEX = 8,
+    TLABEL = 9,
+    TSTRING = 10,
+    TCOMMENT = 11,
 
-    TADDRESS,
-    TCONSTANT,
-    TUNKNOWN
+    TADDRESS = 20,
+    TCONSTANT = 21,
+    TUNKNOWN = 22
 };
 
 export const TokenDefinitions: Array<TokenDefinition> = [
@@ -55,4 +55,3 @@ export interface TokenInfo {
     startIndex: number;
     endIndex: number;
 }
-
