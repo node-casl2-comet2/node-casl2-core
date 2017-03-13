@@ -1,6 +1,6 @@
 "use strict";
 
-const scopedName = (name: string, scope: number) => `${scope}-${name}`;
+const scopedName = (name: string, scope: number) => `${scope}_${name}`;
 
 /**
  * LabelMap
@@ -57,5 +57,17 @@ export class LabelMap {
         } else {
             this._bindMap.set(key, scopedName(bindTo, scope));
         }
+    }
+
+    getAllReferenceableLabels(scope: number) {
+        // グローバルに参照できるものと
+        // 同じスコープのものに絞る
+        // スコープのあるものは1_L1のようにスコープ付きの名前で登録されているので
+        // '1_'の部分を取り除いている
+        const a = Array.from(this._map.keys())
+            .filter(x => !x.match(/^\d/) || x.startsWith(scope.toString()))
+            .map(x => x.replace(/^\d+_/, ""));
+        const b = Array.from(this._bindMap.keys());
+        return a.concat(b);
     }
 }

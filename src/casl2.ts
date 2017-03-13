@@ -22,6 +22,7 @@ const defaultCompileOption: Casl2CompileOption = {
 
 export interface Casl2DiagnosticResult {
     tokensMap: Map<number, Array<TokenInfo>>;
+    getAllReferenceableLabels: (line: number) => Array<string>;
     diagnostics: Array<Diagnostic>;
     instructions: Array<InstructionBase>;
     generatedInstructions: Array<InstructionBase>;
@@ -91,7 +92,7 @@ export class Casl2 {
                 // リテラルをオペランドとするDC命令を生成する
                 const dcLine = `    DC    ${literal}`;
                 const map = new Map([
-                    [1, splitToTokens(dcLine, 1).value!]
+                    [-1, splitToTokens(dcLine, -1).value!]
                 ]);
                 const mdcs = parseAll(map);
 
@@ -138,6 +139,7 @@ export class Casl2 {
             globalByteOffset += inst.byteLength;
         }
 
+        const scopeMap = new Map<number, number>();
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
         let byteOffset = 0;
@@ -171,6 +173,10 @@ export class Casl2 {
 
             byteOffset += inst.byteLength;
 
+            if (inst.lineNumber >= 0) {
+                scopeMap.set(inst.lineNumber, scope);
+            }
+
             // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
             if (enableLabelScope && inst.instructionName === "END") {
                 scope++;
@@ -191,8 +197,19 @@ export class Casl2 {
             }
         }
 
+        // 行番号→参照できるラベルの配列
+        function getAllReferenceableLabels(line: number): Array<string> {
+            const scope = scopeMap.get(line);
+            if (scope !== undefined) {
+                return labelMap.getAllReferenceableLabels(scope);
+            } else {
+                return [];
+            }
+        }
+
         return {
             tokensMap: tokensMap,
+            getAllReferenceableLabels: getAllReferenceableLabels,
             diagnostics: diagnostics,
             instructions: instructions,
             generatedInstructions: generatedInstructions,
