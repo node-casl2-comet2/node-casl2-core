@@ -1,6 +1,7 @@
 "use strict";
 
 import { LabelMap, LabelInfo } from "../../src/data/labelMap";
+import { TokenInfo, TokenType, createTokenInfo } from "../../src/casl2/lexer/token";
 
 import * as assert from "assert";
 
@@ -15,8 +16,9 @@ suite("LabelMap test", () => {
 
     test("test bindAdd", () => {
         const map = new LabelMap();
+        const token: TokenInfo = createTokenInfo("CASL");
         // 'CASL' -> 'BEGIN'
-        map.bindAdd("CASL", "BEGIN");
+        map.bindAdd("CASL", token, "BEGIN");
         // 'BEGIN' -> 0x03
         map.add("BEGIN", { address: 0x03 });
         const info = map.get("CASL") as LabelInfo;

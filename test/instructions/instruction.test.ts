@@ -8,6 +8,7 @@ import { parseAll } from "../../src/casl2/parser/parser";
 import { splitToTokens } from "../../src/casl2/lexer/lexer";
 import { createDiagnostic } from "../../src/diagnostics/diagnosticMessage";
 import { Diagnostics } from "../../src/diagnostics/diagnosticMessages";
+import { createTokenInfo } from "../../src/casl2/lexer/token";
 
 function createInstructions(s: string): Array<InstructionBase> {
     const lineNumber = 0;
@@ -53,7 +54,8 @@ suite("Instruction test", () => {
         // アドレス解決をする
         const map = new LabelMap();
         map.add("BEGIN", { address: 0x03 });
-        map.bindAdd("CASL", "BEGIN");
+        const token = createTokenInfo("CASL");
+        map.bindAdd("CASL", token, "BEGIN");
         instruction.resolveAddress(map);
 
         const info = map.get("CASL") as LabelInfo;

@@ -22,7 +22,7 @@ const defaultCompileOption: Casl2CompileOption = {
 
 export interface Casl2DiagnosticResult {
     tokensMap: Map<number, Array<TokenInfo>>;
-    getAllReferenceableLabels: (line: number) => Array<string>;
+    scopeMap: Map<number, number>;
     diagnostics: Array<Diagnostic>;
     instructions: Array<InstructionBase>;
     generatedInstructions: Array<InstructionBase>;
@@ -157,7 +157,7 @@ export class Casl2 {
                 if (inst.instructionName === "START" && inst.address != undefined) {
                     if (labelMap.has(inst.label, inst.scope)) compileError();
                     // START命令でadr指定がある場合はadrから開始することになる
-                    else labelMap.bindAdd(inst.label, inst.address as string, inst.scope);
+                    else labelMap.bindAdd(inst.label, inst.originalTokens.label!, inst.address as string, inst.scope);
                 } else {
                     // COMET2は1語16ビット(2バイト)なので2で割っている
                     const address = byteOffset / 2;
@@ -207,19 +207,9 @@ export class Casl2 {
             }
         }
 
-        // 行番号→参照できるラベルの配列
-        function getAllReferenceableLabels(line: number): Array<string> {
-            const scope = scopeMap.get(line);
-            if (scope !== undefined) {
-                return labelMap.getAllReferenceableLabels(scope);
-            } else {
-                return [];
-            }
-        }
-
         return {
             tokensMap: tokensMap,
-            getAllReferenceableLabels: getAllReferenceableLabels,
+            scopeMap: scopeMap,
             diagnostics: diagnostics,
             instructions: instructions,
             generatedInstructions: generatedInstructions,

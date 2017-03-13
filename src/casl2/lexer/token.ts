@@ -30,7 +30,9 @@ export enum TokenType {
 
     TADDRESS = 20,
     TCONSTANT = 21,
-    TUNKNOWN = 22
+    TENDOFLINE = 22,
+
+    TUNKNOWN = 30
 };
 
 export const TokenDefinitions: Array<TokenDefinition> = [
@@ -54,6 +56,10 @@ export interface TokenInfo {
     line: number;
     startIndex: number;
     endIndex: number;
+}
+
+export function createTokenInfo(value: string, type = TokenType.TUNKNOWN, line = 0, startIndex = 0, endIndex = 0): TokenInfo {
+    return { value, type, line, startIndex, endIndex };
 }
 
 export function isAddressToken(t: TokenType): boolean {

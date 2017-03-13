@@ -19,7 +19,7 @@ import { stringToGR } from "@maxfield/node-casl2-comet2-core-common";
 
 const unknownToken: TokenInfo = {
     value: "",
-    type: TokenType.TUNKNOWN,
+    type: TokenType.TENDOFLINE,
     line: 0,
     startIndex: 0,
     endIndex: 0
@@ -91,7 +91,7 @@ export function parseAll(tokensMap: Map<number, Array<TokenInfo>>): Expected<Arr
         }
 
         function consume(t: TokenType, validateFunc: (t: TokenType) => boolean, reportError = true): boolean {
-            if (getNextToken().type == TokenType.TUNKNOWN) {
+            if (getNextToken().type == TokenType.TENDOFLINE) {
                 if (reportError) {
                     diagnostics.push(createDiagnostic(line, token().endIndex, Number.MAX_VALUE, Diagnostics._0_expected, tokenToString(t)));
                 }
@@ -127,7 +127,7 @@ export function parseAll(tokensMap: Map<number, Array<TokenInfo>>): Expected<Arr
             const r = scanner.allScan()
                 || getNextToken().type == TokenType.TCOMMENT
                 || (getNextToken().type == TokenType.TSPACE &&
-                    (getNextNextToken().type == TokenType.TCOMMENT || getNextNextToken().type == TokenType.TUNKNOWN));
+                    (getNextNextToken().type == TokenType.TCOMMENT || getNextNextToken().type == TokenType.TENDOFLINE));
             if (!r && reportError) {
                 diagnostics.push(createDiagnostic(line, token().startIndex, Number.MAX_VALUE, Diagnostics.Unnecessary_operand));
             }
