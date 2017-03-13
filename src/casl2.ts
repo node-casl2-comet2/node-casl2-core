@@ -76,6 +76,7 @@ export class Casl2 {
         if (result.success) {
             result.value!.forEach(x => instructions.push(x));
         } else {
+            result.value!.forEach(x => instructions.push(x));
             pushDiagnostics(result.errors!);
         }
 
@@ -141,6 +142,7 @@ export class Casl2 {
         }
 
         const scopeMap = new Map<number, number>();
+        let lastScopeSetLine = -1;
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
         let byteOffset = 0;
@@ -183,8 +185,9 @@ export class Casl2 {
 
             byteOffset += inst.byteLength;
 
-            if (inst.lineNumber >= 0) {
-                scopeMap.set(inst.lineNumber, scope);
+            for (let i = lastScopeSetLine + 1; i <= inst.lineNumber; i++) {
+                scopeMap.set(i, scope);
+                lastScopeSetLine = inst.lineNumber;
             }
 
             // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
