@@ -10,11 +10,12 @@ import { createDiagnostic } from "../../src/diagnostics/diagnosticMessage";
 import { Diagnostics } from "../../src/diagnostics/diagnosticMessages";
 
 function createInstructions(s: string): Array<InstructionBase> {
-    const tokens = splitToTokens(s, 1);
+    const lineNumber = 0;
+    const tokens = splitToTokens(s, lineNumber);
     assert(tokens.success);
 
     const map = new Map([
-        [1, tokens.value!]
+        [lineNumber, tokens.value!]
     ]);
     const parse = parseAll(map);
 
@@ -121,9 +122,13 @@ suite("Instruction test", () => {
         // ラベル
         line = "    DC L0";
         dc = createInstruction(line) as InstructionBase;
+        dc.setScope(1);
+
         // アドレス解決をする
-        const map = new LabelMap([["1-L0", 0x0002]]);
+        const map = new LabelMap();
+        map.add("L0", 0x0002, 1);
         dc.resolveAddress(map);
+
         assert.deepEqual(dc.toHex(), [0x0002]);
     });
 

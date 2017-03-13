@@ -138,10 +138,6 @@ export class InstructionBase implements Instruction {
         return this._label;
     }
 
-    public get scopedLabel() {
-        return `${this.scope}-${this.label}`;
-    }
-
     public get address() {
         return this._address;
     }
