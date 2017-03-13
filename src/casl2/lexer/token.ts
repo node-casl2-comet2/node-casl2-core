@@ -55,3 +55,22 @@ export interface TokenInfo {
     startIndex: number;
     endIndex: number;
 }
+
+export function isAddressToken(t: TokenType): boolean {
+    const r = t == TokenType.TLABEL
+        || t == TokenType.TINSTRUCTION
+        || t == TokenType.TDECIMAL
+        || t == TokenType.THEX
+        || t == TokenType.TDECIMALLITERAL
+        || t == TokenType.THEXLITERAL
+        || t == TokenType.TSTRINGLITERAL;
+
+    return r;
+}
+
+export function isConstantToken(t: TokenType): boolean {
+    const r = t == TokenType.TDECIMAL || t == TokenType.THEX
+        || t == TokenType.TSTRING || t == TokenType.TLABEL;
+
+    return r;
+}

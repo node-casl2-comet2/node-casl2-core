@@ -1,6 +1,6 @@
 "use strict";
 
-import { TokenInfo, TokenType } from "../lexer/token";
+import { TokenInfo, TokenType, isAddressToken, isConstantToken } from "../lexer/token";
 import { Expected } from "../../expected";
 import { Diagnostic, DiagnosticMessage } from "../../diagnostics/types";
 import { InstructionBase, OriginalTokens } from "../../instructions/instructionBase";
@@ -13,6 +13,7 @@ import { ArgumentType, instructionsInfo, InstructionInfo, GR } from "@maxfield/n
 import { escapeStringConstant } from "../../helpers/escapeStringConstant";
 import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
 import { instructionMap } from "../../instructions/instructionMap";
+import { stringToGR } from "@maxfield/node-casl2-comet2-core-common";
 
 
 
@@ -482,21 +483,6 @@ function tokenToString(t: TokenType) {
     return v;
 }
 
-function stringToGR(s: string): GR {
-    switch (s) {
-        case "GR0": return GR.GR0;
-        case "GR1": return GR.GR1;
-        case "GR2": return GR.GR2;
-        case "GR3": return GR.GR3;
-        case "GR4": return GR.GR4;
-        case "GR5": return GR.GR5;
-        case "GR6": return GR.GR6;
-        case "GR7": return GR.GR7;
-        case "GR8": return GR.GR8_SP;
-        default: throw new Error();
-    }
-}
-
 function toAddress(token: TokenInfo): string | number {
     if (!isAddressToken(token.type)) throw new Error();
 
@@ -546,25 +532,6 @@ function toConst(token: TokenInfo): number | string {
     }
 
     throw new Error();
-}
-
-function isAddressToken(t: TokenType): boolean {
-    const r = t == TokenType.TLABEL
-        || t == TokenType.TINSTRUCTION
-        || t == TokenType.TDECIMAL
-        || t == TokenType.THEX
-        || t == TokenType.TDECIMALLITERAL
-        || t == TokenType.THEXLITERAL
-        || t == TokenType.TSTRINGLITERAL;
-
-    return r;
-}
-
-function isConstantToken(t: TokenType): boolean {
-    const r = t == TokenType.TDECIMAL || t == TokenType.THEX
-        || t == TokenType.TSTRING || t == TokenType.TLABEL;
-
-    return r;
 }
 
 const tokenMap: Map<TokenType, string> = new Map([
