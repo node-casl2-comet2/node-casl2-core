@@ -1,21 +1,31 @@
 "use strict";
 
+import { TokenInfo } from "../casl2/lexer/token";
+
 const scopedName = (name: string, scope: number) => `${scope}_${name}`;
+
+export interface LabelInfo {
+    /**
+     * ラベルの番地
+     */
+    address: number;
+
+    /**
+     * ラベルのトークン
+     */
+    token?: TokenInfo;
+}
 
 /**
  * LabelMap
  * ラベル名とアドレスのマップを表すクラス
  */
 export class LabelMap {
-    private _map: Map<string, number>;
+    private _map: Map<string, LabelInfo>;
     private _bindMap: Map<string, string>;
 
-    constructor(entries?: [string, number][]) {
-        if (entries) {
-            this._map = new Map(entries);
-        } else {
-            this._map = new Map();
-        }
+    constructor() {
+        this._map = new Map();
 
         this._bindMap = new Map();
     }
@@ -28,15 +38,15 @@ export class LabelMap {
         return false;
     }
 
-    public add(key: string, address: number, scope?: number) {
+    public add(key: string, info: LabelInfo, scope?: number): void {
         if (scope === undefined) {
-            this._map.set(key, address);
+            this._map.set(key, info);
         } else {
-            this._map.set(scopedName(key, scope), address);
+            this._map.set(scopedName(key, scope), info);
         }
     }
 
-    public get(key: string, scope?: number) {
+    public get(key: string, scope?: number): LabelInfo | undefined {
         const k = this._bindMap.has(key) ? this._bindMap.get(key) as string :
             scope !== undefined ? scopedName(key, scope) : key;
 

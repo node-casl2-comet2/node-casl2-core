@@ -34,7 +34,7 @@ export class INOUT extends InstructionBase {
                 const [s, e] = this.getTokenIndex(this._originalTokens.buf);
                 return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
             }
-            this.setAddress(resolvedAddress);
+            this.setAddress(resolvedAddress.address);
         }
         if (typeof this._lengthAddress != "number") {
             const adr = this._lengthAddress;
@@ -43,7 +43,7 @@ export class INOUT extends InstructionBase {
                 const [s, e] = this.getTokenIndex(this._originalTokens.length);
                 return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
             }
-            this._lengthAddress = resolvedAddress;
+            this._lengthAddress = resolvedAddress.address;
         }
 
         this.confirmed();

@@ -3,7 +3,7 @@
 import { InstructionBase } from "./instructions/instructionBase";
 import { TokenType } from "./casl2/lexer/token";
 import { CompileResult } from "./compileResult";
-import { LabelMap } from "./data/labelMap";
+import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
 import { LexerOption } from "./casl2/lexerOption";
@@ -133,7 +133,8 @@ export class Casl2 {
             const inst = generatedInstructions[i];
 
             if (inst.label) {
-                labelMap.add(inst.label, (totalByteLength + globalByteOffset) / 2);
+                const address = (totalByteLength + globalByteOffset) / 2;
+                labelMap.add(inst.label, { address });
             }
 
             globalByteOffset += inst.byteLength;
@@ -160,13 +161,22 @@ export class Casl2 {
                 } else {
                     // COMET2は1語16ビット(2バイト)なので2で割っている
                     const address = byteOffset / 2;
+                    const labelToken = inst.originalTokens.label;
                     if (inst.instructionName === "START") {
-                        if (labelMap.has(inst.label)) compileError();
+                        if (labelMap.has(inst.label)) {
+                            compileError();
+                        }
                         // サブルーチンのラベルにはグローバルにアクセスできるようにする
-                        else labelMap.add(inst.label, address);
+                        else {
+                            labelMap.add(inst.label, { address, token: labelToken });
+                        }
                     } else {
-                        if (labelMap.has(inst.label, inst.scope)) compileError();
-                        else labelMap.add(inst.label, address, inst.scope);
+                        if (labelMap.has(inst.label, inst.scope)) {
+                            compileError();
+                        }
+                        else {
+                            labelMap.add(inst.label, { address, token: labelToken }, inst.scope);
+                        }
                     }
                 }
             }
@@ -232,9 +242,9 @@ export class Casl2 {
 
             const firstStartInstLabel = instructions[0].label as string;
 
-            const entryPointAddress = labelMap.get(firstStartInstLabel, 1) as number;
+            const entryPointAddress = labelMap.get(firstStartInstLabel, 1) as LabelInfo;
             // 先頭16バイト分に実行開始番地を埋め込む
-            hexes.unshift(entryPointAddress, 0, 0, 0, 0, 0, 0, 0);
+            hexes.unshift(entryPointAddress.address, 0, 0, 0, 0, 0, 0, 0);
 
             return new CompileResult(diagnostics, instructions, labelMap, hexes);
         } else {

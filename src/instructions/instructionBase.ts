@@ -122,7 +122,7 @@ export class InstructionBase implements Instruction {
             return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
         }
 
-        this._address = resolvedAddress;
+        this._address = resolvedAddress.address;
         this._isConfirmed = true;
 
         return undefined;
@@ -158,6 +158,10 @@ export class InstructionBase implements Instruction {
      */
     public get lineNumber() {
         return this._lineNumber;
+    }
+
+    public get originalTokens() {
+        return this._originalTokens;
     }
 
     public getLiteral(): number | string | undefined {

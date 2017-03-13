@@ -1,7 +1,7 @@
 "use strict";
 
 import { InstructionBase } from "../../src/instructions/instructionBase";
-import { LabelMap } from "../../src/data/labelMap";
+import { LabelMap, LabelInfo } from "../../src/data/labelMap";
 import { Casl2 } from "../../src/casl2";
 import * as assert from "assert";
 import { parseAll } from "../../src/casl2/parser/parser";
@@ -51,11 +51,13 @@ suite("Instruction test", () => {
         instruction = createInstruction(line);
 
         // アドレス解決をする
-        const map = new LabelMap([["BEGIN", 0x03]]);
+        const map = new LabelMap();
+        map.add("BEGIN", { address: 0x03 });
         map.bindAdd("CASL", "BEGIN");
         instruction.resolveAddress(map);
 
-        assert.equal(map.get("CASL") as number, 0x03);
+        const info = map.get("CASL") as LabelInfo;
+        assert.equal(info.address, 0x03);
     });
 
     // END命令
@@ -126,7 +128,7 @@ suite("Instruction test", () => {
 
         // アドレス解決をする
         const map = new LabelMap();
-        map.add("L0", 0x0002, 1);
+        map.add("L0", { address: 0x0002 }, 1);
         dc.resolveAddress(map);
 
         assert.deepEqual(dc.toHex(), [0x0002]);
@@ -137,8 +139,8 @@ suite("Instruction test", () => {
         const instruction = createInstruction(line);
 
         const labelMap = new LabelMap();
-        labelMap.add("BUF", 0x0008, 1);
-        labelMap.add("LEN", 0x0050, 1);
+        labelMap.add("BUF", { address: 0x0008 }, 1);
+        labelMap.add("LEN", { address: 0x0050 }, 1);
         instruction.resolveAddress(labelMap);
 
         assert.deepEqual(instruction.toHex(), [0x9000, 0x0008, 0x0050]);
@@ -149,8 +151,8 @@ suite("Instruction test", () => {
         const instruction = createInstruction(line);
 
         const labelMap = new LabelMap();
-        labelMap.add("BUF", 0x0008, 1);
-        labelMap.add("LEN", 0x0050, 1);
+        labelMap.add("BUF", { address: 0x0008 }, 1);
+        labelMap.add("LEN", { address: 0x0050 }, 1);
         instruction.resolveAddress(labelMap);
 
         assert.deepEqual(instruction.toHex(), [0x9100, 0x0008, 0x0050]);
