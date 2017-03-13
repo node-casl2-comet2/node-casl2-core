@@ -244,145 +244,137 @@ export function parseAll(tokensMap: Map<number, Array<TokenInfo>>): Expected<Arr
                         break;
 
 
-                    case ArgumentType.other:
-                        switch (info.instructionName) {
-                            case "START":
-                                if (!allScan(false)) {
-                                    if (consumeToken(TokenType.TSPACE) && consumeToken(TokenType.TLABEL) && allScan()) {
-                                        const addressToken = token();
-                                        const address = toAddress(addressToken);
-                                        instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined, undefined, address)
-                                            .setOriginalTokens({
-                                                instruction: inst,
-                                                label: labelToken,
-                                                address: addressToken
-                                            });
-                                    }
+                    case ArgumentType.label_START:
+                        if (!allScan(false)) {
+                            if (consumeToken(TokenType.TSPACE) && consumeToken(TokenType.TLABEL) && allScan()) {
+                                const addressToken = token();
+                                const address = toAddress(addressToken);
+                                instruction = new InstructionBase(info.instructionName, line, info.code, label, undefined, undefined, address)
+                                    .setOriginalTokens({
+                                        instruction: inst,
+                                        label: labelToken,
+                                        address: addressToken
+                                    });
+                            }
+                        } else {
+                            instruction = new InstructionBase(info.instructionName, line, info.code, label)
+                                .setOriginalTokens({
+                                    instruction: inst,
+                                    label: labelToken
+                                });
+                        }
+                        break;
+
+
+                    case ArgumentType.decimal_DS:
+                        if (consumeToken(TokenType.TDECIMAL)) {
+                            const wordCount = parseInt(token().value);
+                            if (isNaN(wordCount)) throw new Error();
+
+                            if (wordCount == 0) {
+                                // 語数が0の場合領域は確保しないがラベルは有効である
+                                // OLBL命令: ラベル名だけ有効でバイト長は0
+                                const olbl = new OLBL(line, label)
+                                    .setOriginalTokens({
+                                        label: labelToken
+                                    });
+                                instructions.push(olbl);
+                            } else {
+                                // 語数と同じ数のNOP命令に置き換える
+                                const nopInfo = instructionsInfo.find(x => x.instructionName === "NOP");
+                                if (nopInfo === undefined) throw new Error();
+                                const nop = nopInfo.instructionName;
+                                const nopCode = nopInfo.code;
+
+                                const instruction = new InstructionBase(nop, line, nopCode, label)
+                                    .setOriginalTokens({
+                                        label: labelToken
+                                    });
+                                instructions.push(instruction);
+                                for (let i = 1; i < wordCount; i++) {
+                                    instructions.push(new InstructionBase(nop, -1, nopCode));
+                                }
+                            }
+                        }
+                        break;
+
+
+                    case ArgumentType.constants_DC:
+                        if (consumeConstant()) {
+                            const mdcs: Array<MDC> = [];
+
+                            function validateStringConstant(stringToken: TokenInfo): string | undefined {
+                                if (stringToken.type != TokenType.TSTRING) throw new Error();
+                                const literal = stringToken.value;
+                                const { startIndex, endIndex } = stringToken;
+
+                                // シングルクォーテーションで囲まれた部分の文字列を取り出す
+                                const s = literal.slice(1, literal.length - 1);
+                                // シングルクォーテーションをエスケープする
+                                const escaped = escapeStringConstant(s);
+                                if (escaped == undefined) {
+                                    diagnostics.push(createDiagnostic(line, startIndex, endIndex, Diagnostics.Cannot_escape_single_quotes));
+                                    return;
+                                }
+
+                                // 文字列定数がJIS X 0201の範囲内かチェックする
+                                const inRange = jisx0201.isStrInRange(escaped);
+                                if (!inRange) {
+                                    diagnostics.push(createDiagnostic(line, startIndex, endIndex, Diagnostics.JIS_X_0201_out_of_range));
+                                    return;
+                                }
+
+                                return escaped;
+                            }
+
+                            function splitStringLiteralToMdcs(stringToken: TokenInfo, labelToken?: TokenInfo, line?: number): void {
+                                if (stringToken.type != TokenType.TSTRING) throw new Error();
+
+                                const escaped = validateStringConstant(stringToken);
+                                if (escaped === undefined) return;
+
+                                const ch = escaped.charAt(0);
+                                const label = labelToken ? labelToken.value : undefined;
+                                const mdc = new MDC(label, line, undefined, ch)
+                                    .setOriginalTokens({
+                                        label: labelToken
+                                    });
+                                mdcs.push(mdc);
+                                for (let i = 1; i < escaped.length; i++) {
+                                    const ch = escaped.charAt(i);
+                                    const mdc = new MDC(undefined, undefined, undefined, ch);
+                                    mdcs.push(mdc);
+                                }
+                            }
+
+                            function addMDC(constant: string | number, labelToken?: TokenInfo, line?: number) {
+                                if (token().type == TokenType.TSTRING) {
+                                    splitStringLiteralToMdcs(token(), labelToken, line);
                                 } else {
-                                    instruction = new InstructionBase(info.instructionName, line, info.code, label)
+                                    const label = labelToken ? labelToken.value : undefined;
+                                    const mdc = new MDC(label, line, constant)
                                         .setOriginalTokens({
-                                            instruction: inst,
                                             label: labelToken
                                         });
+                                    mdcs.push(mdc);
                                 }
-                                break;
+                            }
 
+                            const constant = toConst(token());
+                            // 最初の命令にだけラベルと行番号を与える
+                            addMDC(constant, labelToken, line);
 
-                            case "DS":
-                                if (consumeToken(TokenType.TDECIMAL)) {
-                                    const wordCount = parseInt(token().value);
-                                    if (isNaN(wordCount)) throw new Error();
-
-                                    if (wordCount == 0) {
-                                        // 語数が0の場合領域は確保しないがラベルは有効である
-                                        // OLBL命令: ラベル名だけ有効でバイト長は0
-                                        const olbl = new OLBL(line, label)
-                                            .setOriginalTokens({
-                                                label: labelToken
-                                            });
-                                        instructions.push(olbl);
-                                    } else {
-                                        // 語数と同じ数のNOP命令に置き換える
-                                        const nopInfo = instructionsInfo.find(x => x.instructionName === "NOP");
-                                        if (nopInfo === undefined) throw new Error();
-                                        const nop = nopInfo.instructionName;
-                                        const nopCode = nopInfo.code;
-
-                                        const instruction = new InstructionBase(nop, line, nopCode, label)
-                                            .setOriginalTokens({
-                                                label: labelToken
-                                            });
-                                        instructions.push(instruction);
-                                        for (let i = 1; i < wordCount; i++) {
-                                            instructions.push(new InstructionBase(nop, -1, nopCode));
-                                        }
-                                    }
-                                }
-                                break;
-
-
-                            case "DC":
+                            while (consumeToken(TokenType.TCOMMASPACE, false)) {
                                 if (consumeConstant()) {
-                                    const mdcs: Array<MDC> = [];
-
-                                    function validateStringConstant(stringToken: TokenInfo): string | undefined {
-                                        if (stringToken.type != TokenType.TSTRING) throw new Error();
-                                        const literal = stringToken.value;
-                                        const { startIndex, endIndex } = stringToken;
-
-                                        // シングルクォーテーションで囲まれた部分の文字列を取り出す
-                                        const s = literal.slice(1, literal.length - 1);
-                                        // シングルクォーテーションをエスケープする
-                                        const escaped = escapeStringConstant(s);
-                                        if (escaped == undefined) {
-                                            diagnostics.push(createDiagnostic(line, startIndex, endIndex, Diagnostics.Cannot_escape_single_quotes));
-                                            return;
-                                        }
-
-                                        // 文字列定数がJIS X 0201の範囲内かチェックする
-                                        const inRange = jisx0201.isStrInRange(escaped);
-                                        if (!inRange) {
-                                            diagnostics.push(createDiagnostic(line, startIndex, endIndex, Diagnostics.JIS_X_0201_out_of_range));
-                                            return;
-                                        }
-
-                                        return escaped;
-                                    }
-
-                                    function splitStringLiteralToMdcs(stringToken: TokenInfo, labelToken?: TokenInfo, line?: number): void {
-                                        if (stringToken.type != TokenType.TSTRING) throw new Error();
-
-                                        const escaped = validateStringConstant(stringToken);
-                                        if (escaped === undefined) return;
-
-                                        const ch = escaped.charAt(0);
-                                        const label = labelToken ? labelToken.value : undefined;
-                                        const mdc = new MDC(label, line, undefined, ch)
-                                            .setOriginalTokens({
-                                                label: labelToken
-                                            });
-                                        mdcs.push(mdc);
-                                        for (let i = 1; i < escaped.length; i++) {
-                                            const ch = escaped.charAt(i);
-                                            const mdc = new MDC(undefined, undefined, undefined, ch);
-                                            mdcs.push(mdc);
-                                        }
-                                    }
-
-                                    function addMDC(constant: string | number, labelToken?: TokenInfo, line?: number) {
-                                        if (token().type == TokenType.TSTRING) {
-                                            splitStringLiteralToMdcs(token(), labelToken, line);
-                                        } else {
-                                            const label = labelToken ? labelToken.value : undefined;
-                                            const mdc = new MDC(label, line, constant)
-                                                .setOriginalTokens({
-                                                    label: labelToken
-                                                });
-                                            mdcs.push(mdc);
-                                        }
-                                    }
-
                                     const constant = toConst(token());
-                                    // 最初の命令にだけラベルと行番号を与える
-                                    addMDC(constant, labelToken, line);
-
-                                    while (consumeToken(TokenType.TCOMMASPACE, false)) {
-                                        if (consumeConstant()) {
-                                            const constant = toConst(token());
-                                            // TODO: 命令を配置する
-                                            addMDC(constant);
-                                        } else {
-                                            break;
-                                        }
-                                    }
-
-                                    mdcs.forEach(x => instructions.push(x));
+                                    // TODO: 命令を配置する
+                                    addMDC(constant);
+                                } else {
+                                    break;
                                 }
-                                break;
+                            }
 
-
-                            default:
-                                throw new Error();
+                            mdcs.forEach(x => instructions.push(x));
                         }
                         break;
 
