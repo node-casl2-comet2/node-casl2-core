@@ -14,6 +14,11 @@ export interface LabelInfo {
      * ラベルのトークン
      */
     token?: TokenInfo;
+
+    /**
+     * ラベルを参照しているトークン
+     */
+    references?: Array<TokenInfo>;
 }
 
 export interface BindLabelInfo {
@@ -92,5 +97,18 @@ export class LabelMap {
 
         const b = Array.from(this._bindMap.values()).map(x => x.token);
         return a.concat(b);
+    }
+
+    findAllReferences(includeDeclaration = true, label: string, scope?: number): Array<TokenInfo> | undefined {
+        const a = this.get(label, scope);
+        if (a === undefined) return undefined;
+
+        if (includeDeclaration) {
+            const base = a.token ? [a.token] : [];
+            const refs = a.references || [];
+            return base.concat(refs);
+        } else {
+            return a.references;
+        }
     }
 }

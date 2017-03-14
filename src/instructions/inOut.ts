@@ -24,28 +24,23 @@ export class INOUT extends InstructionBase {
         return 6;
     }
 
+    setLengthAddress(address: number) {
+        this._lengthAddress = address;
+    }
+
     public resolveAddress(labelMap: LabelMap): Diagnostic | undefined {
         if (this._isConfirmed) return undefined;
 
         if (typeof this.address != "number") {
-            const adr = this.address as string;
-            const resolvedAddress = labelMap.get(adr, this.scope);
-            if (resolvedAddress == undefined) {
-                const [s, e] = this.getTokenIndex(this._originalTokens.buf);
-                return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
-            }
-            this.setAddress(resolvedAddress.address);
+            const r1 = this.resolve(labelMap, this.address as string, this._originalTokens.buf, this.setAddress.bind(this));
+            if (r1 !== undefined) return r1;
         }
         if (typeof this._lengthAddress != "number") {
-            const adr = this._lengthAddress;
-            const resolvedAddress = labelMap.get(adr, this.scope);
-            if (resolvedAddress == undefined) {
-                const [s, e] = this.getTokenIndex(this._originalTokens.length);
-                return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
-            }
-            this._lengthAddress = resolvedAddress.address;
+            const r2 = this.resolve(labelMap, this._lengthAddress, this._originalTokens.length, this.setLengthAddress.bind(this));
+            if (r2 !== undefined) return r2;
         }
 
+        // 命令を確定させる
         this.confirmed();
 
         return undefined;

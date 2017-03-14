@@ -109,21 +109,37 @@ export class InstructionBase implements Instruction {
         }
     }
 
+    protected resolve(labelMap: LabelMap, adr: string, resolveToken: TokenInfo | undefined, resolveMethod: (address: number) => void): Diagnostic | undefined {
+        if (this._isConfirmed) return undefined;
+
+        const resolvedAddress = labelMap.get(adr, this.scope);
+        if (resolvedAddress == undefined) {
+            const [s, e] = this.getTokenIndex(resolveToken);
+            return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
+        }
+
+        resolveMethod(resolvedAddress.address);
+
+        if (resolveToken) {
+            // 参照しているトークンを登録する
+            if (resolvedAddress.references === undefined) {
+                resolvedAddress.references = [];
+            }
+            resolvedAddress.references.push(resolveToken);
+        }
+
+        return undefined;
+    }
+
     /**
      * ラベルマップを使ってラベルを実際のアドレスに解決します
      */
     public resolveAddress(labelMap: LabelMap): Diagnostic | undefined {
-        if (this._isConfirmed) return undefined;
+        const r = this.resolve(labelMap, this._address as string, this._originalTokens.address, this.setAddress.bind(this));
+        if (r !== undefined) return r;
 
-        const adr = this._address as string;
-        const resolvedAddress = labelMap.get(adr, this.scope);
-        if (resolvedAddress == undefined) {
-            const [s, e] = this.getTokenIndex(this._originalTokens.address);
-            return createDiagnostic(this.lineNumber, s, e, Diagnostics.Undeclared_label_0_, adr);
-        }
-
-        this._address = resolvedAddress.address;
-        this._isConfirmed = true;
+        // 命令を確定させる
+        this.confirmed();
 
         return undefined;
     }
