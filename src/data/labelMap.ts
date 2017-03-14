@@ -33,6 +33,11 @@ export interface BindLabelInfo {
     token: TokenInfo;
 }
 
+export interface AllReferences {
+    references: Array<TokenInfo>;
+    declaration?: TokenInfo;
+}
+
 /**
  * LabelMap
  * ラベル名とアドレスのマップを表すクラス
@@ -99,16 +104,13 @@ export class LabelMap {
         return a.concat(b);
     }
 
-    findAllReferences(includeDeclaration = true, label: string, scope?: number): Array<TokenInfo> | undefined {
+    findAllReferences(label: string, scope: number): AllReferences | undefined {
         const a = this.get(label, scope);
         if (a === undefined) return undefined;
 
-        if (includeDeclaration) {
-            const base = a.token ? [a.token] : [];
-            const refs = a.references || [];
-            return base.concat(refs);
-        } else {
-            return a.references;
-        }
+        return {
+            declaration: a.token,
+            references: a.references || []
+        };
     }
 }
