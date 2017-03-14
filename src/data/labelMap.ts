@@ -38,6 +38,11 @@ export interface AllReferences {
     declaration?: TokenInfo;
 }
 
+export interface AllLabels {
+    subroutineLabels: Array<TokenInfo>;
+    labels: Array<TokenInfo>
+}
+
 /**
  * LabelMap
  * ラベル名とアドレスのマップを表すクラス
@@ -111,6 +116,24 @@ export class LabelMap {
         return {
             declaration: a.token,
             references: a.references || []
+        };
+    }
+
+    getAllLabels(): AllLabels {
+        const filter = (regex: RegExp) => {
+            return Array.from(this._map.keys()).filter(x => x.match(regex))
+                .map(x => this._map.get(x)!.token!);
+        }
+
+        const a = Array.from(this._bindMap.values()).map(x => x.token);
+        const b = filter(/^\D/);
+        const subroutineLabels = a.concat(b);
+
+        const labels = filter(/^\d/);
+
+        return {
+            subroutineLabels: subroutineLabels,
+            labels: labels
         };
     }
 }
