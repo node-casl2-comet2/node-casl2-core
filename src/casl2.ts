@@ -17,7 +17,7 @@ import { TokenInfo } from "./casl2/lexer/token";
 
 const defaultCompileOption: Casl2CompileOption = {
     useGR8: false,
-    enableLabelScope: false
+    enableLabelScope: true
 };
 
 export interface LineTokensInfo {
@@ -162,7 +162,11 @@ export class Casl2 {
                 if (inst.instructionName === "START" && inst.address != undefined) {
                     if (labelMap.has(inst.label, inst.scope)) compileError();
                     // START命令でadr指定がある場合はadrから開始することになる
-                    else labelMap.bindAdd(inst.label, inst.originalTokens.label!, inst.address as string, inst.scope);
+                    else {
+                        const labelToken = inst.originalTokens.label;
+                        labelMap.add(inst.label, { address: -1, token: labelToken }, inst.scope);
+                        labelMap.bindAdd(inst.label, labelToken!, inst.address as string, inst.scope);
+                    }
                 } else {
                     // COMET2は1語16ビット(2バイト)なので2で割っている
                     const address = byteOffset / 2;

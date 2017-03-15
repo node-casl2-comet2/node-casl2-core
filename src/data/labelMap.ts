@@ -73,15 +73,36 @@ export class LabelMap {
         }
     }
 
-    public get(key: string, scope?: number): LabelInfo | undefined {
-        const k = this._bindMap.has(key) ? (this._bindMap.get(key) as BindLabelInfo).bindTo :
-            scope !== undefined ? scopedName(key, scope) : key;
+    private resolveKey(direct: boolean, key: string, scope?: number) {
+        const k = scope !== undefined ? scopedName(key, scope) : key;
+        if (direct) {
+            return k;
+        } else {
+            const k2 = this._bindMap.has(key)
+                ? (this._bindMap.get(key) as BindLabelInfo).bindTo
+                : k;
+            return k2;
+        }
+    }
 
-        const value = this._map.get(k);
+    private innerGet(key1: string, key2: string): LabelInfo | undefined {
+        const value = this._map.get(key1);
         if (value !== undefined)
             return value;
         else
-            return this._map.get(key);
+            return this._map.get(key2);
+    }
+
+    public get(key: string, scope?: number): LabelInfo | undefined {
+        const k = this.resolveKey(false, key, scope);
+
+        return this.innerGet(k, key);
+    }
+
+    public getLabelDefinition(key: string, scope?: number): LabelInfo | undefined {
+        const k = this.resolveKey(true, key, scope);
+
+        return this.innerGet(k, key);
     }
 
     /**
@@ -110,7 +131,7 @@ export class LabelMap {
     }
 
     findAllReferences(label: string, scope: number): AllReferences | undefined {
-        const a = this.get(label, scope);
+        const a = this.getLabelDefinition(label, scope);
         if (a === undefined) return undefined;
 
         return {

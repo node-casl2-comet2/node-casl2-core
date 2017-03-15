@@ -121,11 +121,14 @@ export class InstructionBase implements Instruction {
         resolveMethod(resolvedAddress.address);
 
         if (resolveToken) {
+            const labelDef = labelMap.getLabelDefinition(adr, this.scope);
+            if (labelDef === undefined) throw new Error();
+
             // 参照しているトークンを登録する
-            if (resolvedAddress.references === undefined) {
-                resolvedAddress.references = [];
+            if (labelDef.references === undefined) {
+                labelDef.references = [];
             }
-            resolvedAddress.references.push(resolveToken);
+            labelDef.references.push(resolveToken);
         }
 
         return undefined;
