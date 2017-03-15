@@ -17,7 +17,7 @@ suite("semantic error", () => {
         assert(tokens.success);
 
         const map = new Map([
-            [1, tokens.value!]
+            [1, { tokens: tokens.value!, success: true }]
         ]);
         const parse = parseAll(map);
 

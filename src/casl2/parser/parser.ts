@@ -14,6 +14,7 @@ import { escapeStringConstant } from "../../helpers/escapeStringConstant";
 import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
 import { instructionMap } from "../../instructions/instructionMap";
 import { stringToGR } from "@maxfield/node-casl2-comet2-core-common";
+import { LineTokensInfo } from "../../casl2";
 
 
 
@@ -53,11 +54,13 @@ class Scanner {
     }
 }
 
-export function parseAll(tokensMap: Map<number, Array<TokenInfo>>): Expected<Array<InstructionBase>, Diagnostic> {
+export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array<InstructionBase>, Diagnostic> {
     const allDiagnostics: Array<Diagnostic> = [];
     const instructions: Array<InstructionBase> = [];
-    tokensMap.forEach((value, key) => {
-        parse(value, key);
+    tokensMap.forEach((info, key) => {
+        if (info.success) {
+            parse(info.tokens, key);
+        }
     });
 
     return {

@@ -16,7 +16,7 @@ function createInstructions(s: string): Array<InstructionBase> {
     assert(tokens.success);
 
     const map = new Map([
-        [lineNumber, tokens.value!]
+        [lineNumber, { tokens: tokens.value!, success: true }]
     ]);
     const parse = parseAll(map);
 

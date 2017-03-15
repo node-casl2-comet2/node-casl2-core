@@ -20,8 +20,13 @@ const defaultCompileOption: Casl2CompileOption = {
     enableLabelScope: false
 };
 
+export interface LineTokensInfo {
+    tokens: Array<TokenInfo>;
+    success: boolean;
+}
+
 export interface Casl2DiagnosticResult {
-    tokensMap: Map<number, Array<TokenInfo>>;
+    tokensMap: Map<number, LineTokensInfo>;
     scopeMap: Map<number, number>;
     diagnostics: Array<Diagnostic>;
     instructions: Array<InstructionBase>;
@@ -38,7 +43,7 @@ export class Casl2 {
     analyze(lines: Array<string>): Casl2DiagnosticResult {
         const diagnostics: Array<Diagnostic> = [];
         const instructions: Array<InstructionBase> = [];
-        const tokensMap: Map<number, Array<TokenInfo>> = new Map();
+        const tokensMap: Map<number, LineTokensInfo> = new Map();
 
         // ='A' → MDC 'A'のように自動生成される命令を格納する
         const generatedInstructions: Array<InstructionBase> = [];
@@ -62,13 +67,16 @@ export class Casl2 {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lineNumber = i;
-            if (line.trim() === "") continue;
-
-            const tokens = splitToTokens(line, lineNumber);
-            if (tokens.success) {
-                tokensMap.set(lineNumber, tokens.value!);
+            if (line.trim() === "") {
+                // TODO: parseAllで処理する
+                tokensMap.set(lineNumber, { tokens: [], success: true });
             } else {
-                pushDiagnostics(tokens.errors!);
+                const tokens = splitToTokens(line, lineNumber);
+                tokensMap.set(lineNumber, { tokens: tokens.value!, success: tokens.success });
+
+                if (!tokens.success) {
+                    pushDiagnostics(tokens.errors!);
+                }
             }
         }
 
@@ -93,7 +101,7 @@ export class Casl2 {
                 // リテラルをオペランドとするDC命令を生成する
                 const dcLine = `    DC    ${literal}`;
                 const map = new Map([
-                    [-1, splitToTokens(dcLine, -1).value!]
+                    [-1, { tokens: splitToTokens(dcLine, -1).value!, success: true }]
                 ]);
                 const mdcs = parseAll(map);
 
