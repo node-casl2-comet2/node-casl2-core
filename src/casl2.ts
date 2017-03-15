@@ -253,4 +253,8 @@ export class Casl2 {
             return new CompileResult(diagnostics, instructions, labelMap);
         }
     }
+
+    changeCompileOption(option: Casl2CompileOption) {
+        this._compileOption = option;
+    }
 }
