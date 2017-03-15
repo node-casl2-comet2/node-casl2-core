@@ -164,7 +164,7 @@ export class Casl2 {
                     // START命令でadr指定がある場合はadrから開始することになる
                     else {
                         const labelToken = inst.originalTokens.label;
-                        labelMap.add(inst.label, { address: -1, token: labelToken }, inst.scope);
+                        labelMap.add(inst.label, { address: -1, token: labelToken });
                         labelMap.bindAdd(inst.label, labelToken!, inst.address as string, inst.scope);
                     }
                 } else {

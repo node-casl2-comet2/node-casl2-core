@@ -146,10 +146,7 @@ export class LabelMap {
                 .map(x => this._map.get(x)!.token!);
         }
 
-        const a = Array.from(this._bindMap.values()).map(x => x.token);
-        const b = filter(/^\D/);
-        const subroutineLabels = a.concat(b);
-
+        const subroutineLabels = filter(/^\D/);
         const labels = filter(/^\d/);
 
         return {
