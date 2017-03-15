@@ -192,10 +192,12 @@ export class Casl2 {
 
             byteOffset += inst.byteLength;
 
-            for (let i = lastScopeSetLine + 1; i <= inst.lineNumber; i++) {
-                scopeMap.set(i, scope);
-                lastScopeSetLine = inst.lineNumber;
+            for (let i = lastScopeSetLine + 1; i < inst.lineNumber; i++) {
+                // 空行などスキップされる行のスコープは-1とする
+                scopeMap.set(i, -1);
             }
+            scopeMap.set(inst.lineNumber, scope);
+            lastScopeSetLine = inst.lineNumber;
 
             // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
             if (enableLabelScope && inst.instructionName === "END") {
