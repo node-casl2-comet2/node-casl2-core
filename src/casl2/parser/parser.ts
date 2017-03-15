@@ -70,6 +70,10 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
     };
 
     function parse(tokens: Array<TokenInfo>, line: number): void {
+        // 空行はスキップする
+        if (tokens.length == 0 ||
+            (tokens.length == 1 && tokens[0].type == TokenType.TSPACE)) return;
+
         const scanner = new Scanner(tokens);
         const diagnostics: Array<Diagnostic> = [];
         let instruction: InstructionBase | undefined = undefined;

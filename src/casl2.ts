@@ -67,16 +67,11 @@ export class Casl2 {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lineNumber = i;
-            if (line.trim() === "") {
-                // TODO: parseAllで処理する
-                tokensMap.set(lineNumber, { tokens: [], success: true });
-            } else {
-                const tokens = splitToTokens(line, lineNumber);
-                tokensMap.set(lineNumber, { tokens: tokens.value!, success: tokens.success });
+            const tokens = splitToTokens(line, lineNumber);
+            tokensMap.set(lineNumber, { tokens: tokens.value!, success: tokens.success });
 
-                if (!tokens.success) {
-                    pushDiagnostics(tokens.errors!);
-                }
+            if (!tokens.success) {
+                pushDiagnostics(tokens.errors!);
             }
         }
 
