@@ -26,12 +26,22 @@ export interface LineTokensInfo {
 }
 
 export interface Casl2DiagnosticResult {
+    subroutinesInfo: Array<SubroutineInfo>;
     tokensMap: Map<number, LineTokensInfo>;
     scopeMap: Map<number, number>;
     diagnostics: Array<Diagnostic>;
     instructions: Array<InstructionBase>;
     generatedInstructions: Array<InstructionBase>;
     labelMap: LabelMap;
+}
+
+export interface SubroutineInfo {
+    /** サブルーチン名 */
+    subroutine: string;
+    /** サブルーチン開始行 */
+    startLine: number;
+    /** サブルーチン終了行 */
+    endLine: number;
 }
 
 export class Casl2 {
@@ -145,11 +155,13 @@ export class Casl2 {
         }
 
         const scopeMap = new Map<number, number>();
+        const subroutinesInfo: Array<SubroutineInfo> = [];
         let lastScopeSetLine = -1;
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
         let byteOffset = 0;
         const enableLabelScope = this._compileOption.enableLabelScope === true;
+        let subroutineInfo: SubroutineInfo = { subroutine: "", startLine: -1, endLine: -1 };
         for (let i = 0; i < instructions.length; i++) {
             const inst = instructions[i];
             // ラベル名に重複があればコンパイルエラーである
@@ -159,10 +171,15 @@ export class Casl2 {
             inst.setScope(scope);
 
             if (inst.label) {
+                if (inst.instructionName === "START") {
+                    subroutineInfo.subroutine = inst.label;
+                    subroutineInfo.startLine = inst.lineNumber;
+                }
+
                 if (inst.instructionName === "START" && inst.address != undefined) {
                     if (labelMap.has(inst.label, inst.scope)) compileError();
-                    // START命令でadr指定がある場合はadrから開始することになる
                     else {
+                        // START命令でadr指定がある場合はadrから開始することになる
                         const labelToken = inst.originalTokens.label;
                         labelMap.add(inst.label, { address: -1, token: labelToken });
                         labelMap.bindAdd(inst.label, labelToken!, inst.address as string, inst.scope);
@@ -199,9 +216,17 @@ export class Casl2 {
             scopeMap.set(inst.lineNumber, scope);
             lastScopeSetLine = inst.lineNumber;
 
-            // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
-            if (enableLabelScope && inst.instructionName === "END") {
-                scope++;
+            if (inst.instructionName === "END") {
+                subroutineInfo.endLine = inst.lineNumber;
+                if (subroutineInfo.startLine >= 0 && subroutineInfo.subroutine !== "") {
+                    subroutinesInfo.push(subroutineInfo);
+                    subroutineInfo = { subroutine: "", startLine: -1, endLine: -1 };
+                }
+
+                // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
+                if (enableLabelScope) {
+                    scope++;
+                }
             }
         }
 
@@ -221,6 +246,7 @@ export class Casl2 {
 
         return {
             tokensMap: tokensMap,
+            subroutinesInfo: subroutinesInfo,
             scopeMap: scopeMap,
             diagnostics: diagnostics,
             instructions: instructions,
