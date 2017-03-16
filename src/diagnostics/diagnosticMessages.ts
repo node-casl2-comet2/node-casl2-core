@@ -6,7 +6,7 @@ export const Diagnostics = {
     Duplicate_label_0_: {
         code: 1,
         category: DiagnosticCategory.Error,
-        message: "ラベル '{0}' が重複しています。。"
+        message: "ラベル '{0}' が重複しています。"
     },
     GR0_cannot_be_used_as_index_register: {
         code: 2,
