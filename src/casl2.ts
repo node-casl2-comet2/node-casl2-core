@@ -14,6 +14,7 @@ import { Diagnostics } from "./diagnostics/diagnosticMessages";
 import { parseAll } from "./casl2/parser/parser"
 import { splitToTokens } from "./casl2/lexer/lexer";
 import { TokenInfo } from "./casl2/lexer/token";
+import { read } from "./reader";
 
 const defaultCompileOption: Casl2CompileOption = {
     useGR8: false,
@@ -255,7 +256,8 @@ export class Casl2 {
         }
     }
 
-    public compile(lines: Array<string>): CompileResult {
+    public compile(sourcePath: string): CompileResult {
+        const lines = read(sourcePath);
         const { diagnostics, instructions, generatedInstructions, labelMap } = this.analyze(lines);
 
         if (diagnostics.length == 0) {

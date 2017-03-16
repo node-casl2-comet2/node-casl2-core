@@ -4,7 +4,6 @@ import * as assert from "assert";
 import { binaryRead } from "../binaryReader";
 import * as path from "path";
 import { Casl2 } from "../../src/casl2";
-import { read } from "../reader";
 import * as fs from "fs";
 import { Writer } from "../binaryWriter";
 import * as _ from "lodash";
@@ -12,10 +11,9 @@ import * as _ from "lodash";
 const defaultCompiler = new Casl2();
 
 function compile(casFilePath: string, compiler?: Casl2) {
-    const lines = read(casFilePath);
     const compilerToUse = compiler || defaultCompiler;
 
-    const result = compilerToUse.compile(lines);
+    const result = compilerToUse.compile(casFilePath);
 
     if (!result.success) {
         console.error("errors in " + casFilePath);

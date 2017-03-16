@@ -3,7 +3,6 @@
 import * as assert from "assert";
 import { Casl2 } from "../../src/casl2";
 import { binaryTest } from "./binary.test";
-import { read } from "../reader";
 
 suite("Compile option tests", () => {
     test("GR8 support test", () => {
@@ -23,8 +22,7 @@ suite("Compile option tests", () => {
                 enableLabelScope: enabled
             });
 
-            const lines = read(casFilePath);
-            const result = compiler.compile(lines);
+            const result = compiler.compile(casFilePath);
             assert.equal(result.success, expectedCompileResult);
         }
 
