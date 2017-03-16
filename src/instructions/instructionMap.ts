@@ -11,14 +11,16 @@ function createInstructionMap(info: Array<InstructionInfo>): Map<string, Instruc
         const key = x.instructionName;
         if (map.has(key)) {
             const v = map.get(key)!;
-            const merge = x;
-            merge.argumentType += v.argumentType;
+            const merge = v;
+            merge.argumentType += x.argumentType;
             merge.code = Math.min(x.code, v.code);
 
             // 入れ替え
             map.set(key, merge);
         } else {
-            map.set(key, x);
+            // オブジェクトを複製しないとargumentTypeを
+            // 足す処理で元のオブジェクトを操作することになる
+            map.set(key, Object.assign({}, x));
         }
     }
 
