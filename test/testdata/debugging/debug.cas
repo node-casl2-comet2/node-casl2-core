@@ -1,0 +1,11 @@
+CASL    START
+        LAD     GR1, 2
+        LAD     GR2, 3
+        ADDA    GR1, GR2
+        RET
+        END
+SUB     START   BEGIN
+        LAD     GR3, 4
+BEGIN   LAD     GR4, 5
+        RET
+        END

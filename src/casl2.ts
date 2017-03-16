@@ -2,7 +2,7 @@
 
 import { InstructionBase } from "./instructions/instructionBase";
 import { TokenType } from "./casl2/lexer/token";
-import { CompileResult } from "./compileResult";
+import { CompileResult, DebuggingInfo } from "./compileResult";
 import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
@@ -172,10 +172,42 @@ export class Casl2 {
             inst.setScope(scope);
 
             if (inst.label) {
+                registerLabelToLabelMap(inst);
+
                 if (inst.instructionName === "START") {
                     subroutineInfo.subroutine = inst.label;
                     subroutineInfo.startLine = inst.lineNumber;
                 }
+            }
+
+            byteOffset += inst.byteLength;
+
+            updateScopeMap();
+
+            if (inst.instructionName === "END") {
+                subroutineInfo.endLine = inst.lineNumber;
+                if (subroutineInfo.startLine >= 0 && subroutineInfo.subroutine !== "") {
+                    subroutinesInfo.push(subroutineInfo);
+                    subroutineInfo = { subroutine: "", startLine: -1, endLine: -1 };
+                }
+
+                // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
+                if (enableLabelScope) {
+                    scope++;
+                }
+            }
+
+            function updateScopeMap() {
+                for (let i = lastScopeSetLine + 1; i < inst.lineNumber; i++) {
+                    // 空行などスキップされる行のスコープは-1とする
+                    scopeMap.set(i, -1);
+                }
+                scopeMap.set(inst.lineNumber, scope);
+                lastScopeSetLine = inst.lineNumber;
+            }
+
+            function registerLabelToLabelMap(inst: InstructionBase) {
+                if (inst.label === undefined) throw new Error();
 
                 if (inst.instructionName === "START" && inst.address != undefined) {
                     if (labelMap.has(inst.label, inst.scope)) compileError();
@@ -207,28 +239,6 @@ export class Casl2 {
                     }
                 }
             }
-
-            byteOffset += inst.byteLength;
-
-            for (let i = lastScopeSetLine + 1; i < inst.lineNumber; i++) {
-                // 空行などスキップされる行のスコープは-1とする
-                scopeMap.set(i, -1);
-            }
-            scopeMap.set(inst.lineNumber, scope);
-            lastScopeSetLine = inst.lineNumber;
-
-            if (inst.instructionName === "END") {
-                subroutineInfo.endLine = inst.lineNumber;
-                if (subroutineInfo.startLine >= 0 && subroutineInfo.subroutine !== "") {
-                    subroutinesInfo.push(subroutineInfo);
-                    subroutineInfo = { subroutine: "", startLine: -1, endLine: -1 };
-                }
-
-                // ラベルのスコープが有効ならばEND命令が来るたびにスコープを変える
-                if (enableLabelScope) {
-                    scope++;
-                }
-            }
         }
 
         // アドレス解決する
@@ -239,11 +249,7 @@ export class Casl2 {
             }
         }
 
-        for (const inst of instructions) {
-            for (const d of inst.check()) {
-                diagnostics.push(d);
-            }
-        }
+        checkInstructions();
 
         return {
             tokensMap: tokensMap,
@@ -254,32 +260,68 @@ export class Casl2 {
             generatedInstructions: generatedInstructions,
             labelMap: labelMap
         }
+
+        // 意味解析をする
+        function checkInstructions() {
+            for (const inst of instructions) {
+                for (const d of inst.check()) {
+                    diagnostics.push(d);
+                }
+            }
+        }
     }
 
-    public compile(sourcePath: string): CompileResult {
+    private createDebuggingInfo(instructions: Array<InstructionBase>, labelMap: LabelMap): DebuggingInfo {
+        const addressLineMap = new Map<number, number>();
+        const subroutineMap = new Map<number, number>();
+        let byteOffset = 0;
+        for (const inst of instructions) {
+            if (inst.lineNumber >= 0 && inst.instructionName !== "END") {
+                if (inst.instructionName === "START") {
+                    const address = labelMap.get(inst.label as string)!.address;
+                    subroutineMap.set(address, inst.lineNumber);
+                } else {
+                    addressLineMap.set(byteOffset / 2, inst.lineNumber);
+                }
+            }
+
+            byteOffset += inst.byteLength;
+        }
+
+        return {
+            addressLineMap: addressLineMap,
+            subroutineMap: subroutineMap
+        };
+    }
+
+    public compile(sourcePath: string, debugging = false): CompileResult {
         const lines = read(sourcePath);
         const { diagnostics, instructions, generatedInstructions, labelMap } = this.analyze(lines);
 
-        if (diagnostics.length == 0) {
-            // コンパイル成功の場合
-            for (const inst of generatedInstructions) {
-                instructions.push(inst);
-            }
+        const debuggingInfo = debugging ? this.createDebuggingInfo(instructions, labelMap) : undefined;
 
-            const hex = instructions.map(x => x.toHex());
-            const flatten = [].concat.apply([], hex) as Array<number>;
-            const hexes = flatten.filter(x => x != -1);
-
-            const firstStartInstLabel = instructions[0].label as string;
-
-            const entryPointAddress = labelMap.get(firstStartInstLabel, 1) as LabelInfo;
-            // 先頭16バイト分に実行開始番地を埋め込む
-            hexes.unshift(entryPointAddress.address, 0, 0, 0, 0, 0, 0, 0);
-
-            return CompileResult.create(true, diagnostics, instructions, labelMap, hexes);
-        } else {
+        const compileSuccess = diagnostics.length == 0;
+        if (!compileSuccess) {
+            // コンパイル失敗の場合
             return CompileResult.create(false, diagnostics, instructions, labelMap);
         }
+
+        // コンパイル成功の場合
+        for (const inst of generatedInstructions) {
+            instructions.push(inst);
+        }
+
+        const hex = instructions.map(x => x.toHex());
+        const flatten = [].concat.apply([], hex) as Array<number>;
+        const hexes = flatten.filter(x => x != -1);
+
+        const firstStartInstLabel = instructions[0].label as string;
+
+        const entryPointAddress = labelMap.get(firstStartInstLabel, 1) as LabelInfo;
+        // 先頭16バイト分に実行開始番地を埋め込む
+        hexes.unshift(entryPointAddress.address, 0, 0, 0, 0, 0, 0, 0);
+
+        return CompileResult.create(true, diagnostics, instructions, labelMap, hexes, debuggingInfo);
     }
 
     changeCompileOption(option: Casl2CompileOption) {
