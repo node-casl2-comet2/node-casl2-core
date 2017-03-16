@@ -276,9 +276,9 @@ export class Casl2 {
             // 先頭16バイト分に実行開始番地を埋め込む
             hexes.unshift(entryPointAddress.address, 0, 0, 0, 0, 0, 0, 0);
 
-            return new CompileResult(diagnostics, instructions, labelMap, hexes);
+            return CompileResult.create(true, diagnostics, instructions, labelMap, hexes);
         } else {
-            return new CompileResult(diagnostics, instructions, labelMap);
+            return CompileResult.create(false, diagnostics, instructions, labelMap);
         }
     }
 

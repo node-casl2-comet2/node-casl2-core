@@ -17,7 +17,7 @@ function compile(casFilePath: string, compiler?: Casl2) {
 
     if (!result.success) {
         console.error("errors in " + casFilePath);
-        result.errors.forEach(x => console.log(x.toString()));
+        result.diagnostics.forEach(x => console.log(x.toString()));
     }
 
     assert(result.success);
