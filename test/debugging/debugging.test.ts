@@ -2,7 +2,7 @@
 
 import * as assert from "assert";
 import { Casl2 } from "../../src/casl2";
-import { MemoryRange } from "../../src/compileResult";
+import { MemoryRange } from "@maxfield/node-casl2-comet2-core-common";
 
 function compile(path: string) {
     const casl2 = new Casl2();

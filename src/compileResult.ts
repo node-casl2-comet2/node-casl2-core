@@ -4,6 +4,7 @@ import { InstructionBase } from "./instructions/instructionBase";
 import { LabelMap } from "./data/labelMap";
 import { Diagnostic } from "./diagnostics/types";
 import { SubroutineInfo } from "./casl2";
+import { MemoryRange } from "@maxfield/node-casl2-comet2-core-common";
 
 export interface CompileResult {
     success: boolean;
@@ -12,11 +13,6 @@ export interface CompileResult {
     labelMap: LabelMap;
     hexes?: Array<number>;
     debuggingInfo?: DebuggingInfo;
-}
-
-export interface MemoryRange {
-    start: number;
-    end: number;
 }
 
 export interface DebuggingInfo {

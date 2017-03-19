@@ -1,8 +1,9 @@
 "use strict";
 
+import { MemoryRange } from "@maxfield/node-casl2-comet2-core-common";
 import { InstructionBase } from "./instructions/instructionBase";
 import { TokenType } from "./casl2/lexer/token";
-import { CompileResult, DebuggingInfo, MemoryRange } from "./compileResult";
+import { CompileResult, DebuggingInfo } from "./compileResult";
 import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
