@@ -271,7 +271,7 @@ export class Casl2 {
         }
     }
 
-    private createDebuggingInfo(instructions: Array<InstructionBase>, labelMap: LabelMap): DebuggingInfo {
+    private createDebuggingInfo(instructions: Array<InstructionBase>, labelMap: LabelMap, subroutinesInfo: Array<SubroutineInfo>): DebuggingInfo {
         const addressLineMap = new Map<number, number>();
         const subroutineMap = new Map<number, number>();
         let byteOffset = 0;
@@ -290,15 +290,16 @@ export class Casl2 {
 
         return {
             addressLineMap: addressLineMap,
-            subroutineMap: subroutineMap
+            subroutineMap: subroutineMap,
+            subroutinesInfo: subroutinesInfo
         };
     }
 
     public compile(sourcePath: string, debugging = false): CompileResult {
         const lines = read(sourcePath);
-        const { diagnostics, instructions, generatedInstructions, labelMap } = this.analyze(lines);
+        const { diagnostics, instructions, generatedInstructions, labelMap, subroutinesInfo } = this.analyze(lines);
 
-        const debuggingInfo = debugging ? this.createDebuggingInfo(instructions, labelMap) : undefined;
+        const debuggingInfo = debugging ? this.createDebuggingInfo(instructions, labelMap, subroutinesInfo) : undefined;
 
         const compileSuccess = diagnostics.length == 0;
         if (!compileSuccess) {

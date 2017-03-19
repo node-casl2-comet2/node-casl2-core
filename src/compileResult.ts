@@ -3,6 +3,7 @@
 import { InstructionBase } from "./instructions/instructionBase";
 import { LabelMap } from "./data/labelMap";
 import { Diagnostic } from "./diagnostics/types";
+import { SubroutineInfo } from "./casl2";
 
 export interface CompileResult {
     success: boolean;
@@ -23,6 +24,8 @@ export interface DebuggingInfo {
      * 実アドレス->サブルーチンのSTART命令の行番号のマップ
      */
     subroutineMap: Map<number, number>;
+
+    subroutinesInfo: Array<SubroutineInfo>;
 }
 
 export namespace CompileResult {
