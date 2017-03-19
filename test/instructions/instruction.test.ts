@@ -75,19 +75,14 @@ suite("Instruction test", () => {
     test("DS test", () => {
         // ラベル無し
         let line = "    DS  3";
-        let ds = createInstructions(line);
-        assert(ds.length == 3);
-        assert(ds[0].instructionName == "NOP" && ds[0].label == undefined);
-        assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
-        assert(ds[2].instructionName == "NOP" && ds[2].label == undefined);
+        let ds = createInstruction(line);
+        assert.deepEqual(ds.toHex(), [0x0000, 0x0000, 0x0000]);
 
         // ラベル有り
         line = "CONST DS 3";
-        ds = createInstructions(line);
-        assert(ds.length == 3);
-        assert(ds[0].instructionName == "NOP" && ds[0].label == "CONST");
-        assert(ds[1].instructionName == "NOP" && ds[1].label == undefined);
-        assert(ds[2].instructionName == "NOP" && ds[2].label == undefined);
+        ds = createInstruction(line);
+        assert.equal(ds.label, "CONST");
+        assert.deepEqual(ds.toHex(), [0x0000, 0x0000, 0x0000]);
 
         // 語数0(ラベル無し)
         // 領域は確保されず何もしないのと同じ

@@ -15,6 +15,7 @@ import { jisx0201 } from "@maxfield/node-casl2-comet2-core-common";
 import { instructionMap } from "../../instructions/instructionMap";
 import { stringToGR } from "@maxfield/node-casl2-comet2-core-common";
 import { LineTokensInfo } from "../../casl2";
+import { DS } from "../../instructions/ds";
 
 
 
@@ -288,19 +289,10 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                 instructions.push(olbl);
                             } else {
                                 // 語数と同じ数のNOP命令に置き換える
-                                const nopInfo = instructionsInfo.find(x => x.instructionName === "NOP");
-                                if (nopInfo === undefined) throw new Error();
-                                const nop = nopInfo.instructionName;
-                                const nopCode = nopInfo.code;
-
-                                const instruction = new InstructionBase(nop, line, nopCode, label)
-                                    .setOriginalTokens({
-                                        label: labelToken
-                                    });
-                                instructions.push(instruction);
-                                for (let i = 1; i < wordCount; i++) {
-                                    instructions.push(new InstructionBase(nop, -1, nopCode));
-                                }
+                                const ds = new DS(line, wordCount, label).setOriginalTokens({
+                                    label: labelToken
+                                });
+                                instructions.push(ds);
                             }
                         }
                         break;
