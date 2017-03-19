@@ -14,6 +14,11 @@ export interface CompileResult {
     debuggingInfo?: DebuggingInfo;
 }
 
+export interface MemoryRange {
+    start: number;
+    end: number;
+}
+
 export interface DebuggingInfo {
     /**
      * 実アドレス->行番号のマップ
@@ -26,6 +31,11 @@ export interface DebuggingInfo {
     subroutineMap: Map<number, number>;
 
     subroutinesInfo: Array<SubroutineInfo>;
+
+    /**
+     * DS命令により確保された領域
+     */
+    dsRanges: Array<MemoryRange>;
 }
 
 export namespace CompileResult {

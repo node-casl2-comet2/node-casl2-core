@@ -2,7 +2,7 @@
 
 import { InstructionBase } from "./instructions/instructionBase";
 import { TokenType } from "./casl2/lexer/token";
-import { CompileResult, DebuggingInfo } from "./compileResult";
+import { CompileResult, DebuggingInfo, MemoryRange } from "./compileResult";
 import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption } from "./compileOption";
@@ -274,6 +274,7 @@ export class Casl2 {
     private createDebuggingInfo(instructions: Array<InstructionBase>, labelMap: LabelMap, subroutinesInfo: Array<SubroutineInfo>): DebuggingInfo {
         const addressLineMap = new Map<number, number>();
         const subroutineMap = new Map<number, number>();
+        const dsRanges: Array<MemoryRange> = [];
         let byteOffset = 0;
         for (const inst of instructions) {
             if (inst.lineNumber >= 0 && inst.instructionName !== "END") {
@@ -285,13 +286,21 @@ export class Casl2 {
                 }
             }
 
+            if (inst.instructionName === "DS") {
+                const start = byteOffset / 2;
+                const end = start + inst.byteLength / 2;
+                const range: MemoryRange = { start, end };
+                dsRanges.push(range);
+            }
+
             byteOffset += inst.byteLength;
         }
 
         return {
             addressLineMap: addressLineMap,
             subroutineMap: subroutineMap,
-            subroutinesInfo: subroutinesInfo
+            subroutinesInfo: subroutinesInfo,
+            dsRanges: dsRanges
         };
     }
 

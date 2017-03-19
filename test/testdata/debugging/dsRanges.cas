@@ -1,0 +1,8 @@
+CASL    START
+        LAD     GR1, 1
+D1      DS      10      ; ラベル有り
+        LAD     GR2, 2
+        DS      20      ; ラベルなし
+        LAD     GR3, 3
+        RET
+        END
