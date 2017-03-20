@@ -70,10 +70,24 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
         errors: allDiagnostics
     };
 
+    function isEmptyOrCommentLine(tokens: Array<TokenInfo>): boolean {
+        if (tokens.length == 0) return true;
+        if (tokens.length == 1) {
+            const [t0] = tokens;
+            if (t0.type == TokenType.TSPACE) return true;
+            if (t0.type == TokenType.TCOMMENT) return true;
+        }
+        if (tokens.length == 2) {
+            const [t0, t1] = tokens;
+            if (t0.type == TokenType.TSPACE && t1.type == TokenType.TCOMMENT) return true;
+        }
+
+        return false;
+    }
+
     function parse(tokens: Array<TokenInfo>, line: number): void {
-        // 空行はスキップする
-        if (tokens.length == 0 ||
-            (tokens.length == 1 && tokens[0].type == TokenType.TSPACE)) return;
+        // 空行やコメント行はスキップする
+        if (isEmptyOrCommentLine(tokens)) return;
 
         const scanner = new Scanner(tokens);
         const diagnostics: Array<Diagnostic> = [];
@@ -143,10 +157,7 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
             return r;
         }
 
-        if (allScan(false)) {
-            // 何もしない
-        }
-        else if (token().type == TokenType.TSPACE) {
+        if (token().type == TokenType.TSPACE) {
             createInstruction();
         }
         // 命令と同じ名前もラベルに使用できる
