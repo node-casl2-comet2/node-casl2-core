@@ -48,14 +48,10 @@ export interface SubroutineInfo {
 }
 
 export class Casl2 {
+    private _compileOption: Casl2CompileOption;
 
-    constructor(private _compileOption: Casl2CompileOption = defaultCompileOption) {
-        if (this._compileOption.enableLabelScope === undefined) {
-            this._compileOption.enableLabelScope = defaultCompileOption.enableLabelScope;
-        }
-        if (this._compileOption.useGR8AsSP === undefined) {
-            this._compileOption.useGR8AsSP = defaultCompileOption.useGR8AsSP;
-        }
+    constructor(compileOption?: Casl2CompileOption) {
+        this._compileOption = this.mergeCompileOption(compileOption);
     }
 
     analyze(lines: Array<string>): Casl2DiagnosticResult {
@@ -335,6 +331,22 @@ export class Casl2 {
     }
 
     changeCompileOption(option: Casl2CompileOption) {
-        this._compileOption = option;
+        this._compileOption = this.mergeCompileOption(option);
+    }
+
+    // 設定されていないオプションをデフォルト設定にする
+    private mergeCompileOption(option?: Casl2CompileOption) {
+        if (option === undefined) {
+            return defaultCompileOption;
+        }
+
+        if (option.enableLabelScope === undefined) {
+            option.enableLabelScope = defaultCompileOption.enableLabelScope;
+        }
+        if (option.useGR8AsSP === undefined) {
+            option.useGR8AsSP = defaultCompileOption.useGR8AsSP;
+        }
+
+        return option;
     }
 }
