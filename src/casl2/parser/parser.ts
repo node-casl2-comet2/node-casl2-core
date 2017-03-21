@@ -381,7 +381,6 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                             while (consumeToken(TokenType.TCOMMASPACE, false)) {
                                 if (consumeConstant()) {
                                     const constant = toConst(token());
-                                    // TODO: 命令を配置する
                                     addMDC(constant);
                                 } else {
                                     break;
