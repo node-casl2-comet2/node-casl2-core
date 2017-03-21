@@ -225,17 +225,23 @@ export class InstructionBase implements Instruction {
     public check(): Array<Diagnostic> {
         const diagnostics: Array<Diagnostic> = [];
         if (this._label !== undefined) {
-            const l = this._label;
+            const label = this._label;
             // ラベルの長さをチェック
-            if (l.length > 8) {
-                const { label } = this._originalTokens;
-                const startIndex = label !== undefined ? label.startIndex : 0;
-                const endIndex = label !== undefined ? label.endIndex : 0;
-
+            if (label.length > 8) {
+                const [startIndex, endIndex] = this.getTokenIndex(this._originalTokens.label);
                 diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Too_long_label_name));
             }
         }
 
+        if (this._address != undefined) {
+            // 0 ~ 65535の範囲にあるかチェックする
+            const address = this._address as number;
+
+            if (address < 0 || address > 65535) {
+                const [startIndex, endIndex] = this.getTokenIndex(this._originalTokens.address);
+                diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Address_out_of_range));
+            }
+        }
         return diagnostics;
     }
 

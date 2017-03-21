@@ -513,7 +513,6 @@ function toAddress(token: TokenInfo): string | number {
     if (isNaN(address)) {
         throw new Error();
     } else {
-        // TODO: -32768 ~ 32767の範囲にあるかチェックする
         return address;
     }
 }

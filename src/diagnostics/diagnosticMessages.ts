@@ -142,5 +142,10 @@ export const Diagnostics = {
         code: 29,
         category: DiagnosticCategory.Error,
         message: "'定数[, 定数]' がありません。"
+    },
+    Address_out_of_range: {
+        code: 30,
+        category: DiagnosticCategory.Error,
+        message: "実効アドレスは0 ~ 65535の範囲である必要があります。"
     }
 }
