@@ -203,8 +203,8 @@ export class Casl2 {
 
             function updateScopeMap() {
                 for (let i = lastScopeSetLine + 1; i < inst.lineNumber; i++) {
-                    // 空行などスキップされる行のスコープは-1とする
-                    scopeMap.set(i, -1);
+                    // 空行などスキップされた行のスコープを埋める
+                    scopeMap.set(i, scope);
                 }
                 scopeMap.set(inst.lineNumber, scope);
                 lastScopeSetLine = inst.lineNumber;
