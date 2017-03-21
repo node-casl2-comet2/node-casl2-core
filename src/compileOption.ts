@@ -2,9 +2,9 @@
 
 export interface Casl2CompileOption {
     /**
-     * GR8をSPの操作に利用する
+     * GR8を有効な汎用レジスタとして使用する
      */
-    useGR8AsSP?: boolean;
+    useGR8?: boolean;
 
     /**
      * ラベルのスコープを有効にする

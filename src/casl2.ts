@@ -18,7 +18,7 @@ import { TokenInfo } from "./casl2/lexer/token";
 import { read } from "./reader";
 
 const defaultCompileOption: Casl2CompileOption = {
-    useGR8AsSP: false,
+    useGR8: false,
     enableLabelScope: false,
     allowNagativeValueForEffectiveAddress: false
 };
@@ -343,8 +343,8 @@ export class Casl2 {
         if (option.enableLabelScope === undefined) {
             option.enableLabelScope = defaultCompileOption.enableLabelScope;
         }
-        if (option.useGR8AsSP === undefined) {
-            option.useGR8AsSP = defaultCompileOption.useGR8AsSP;
+        if (option.useGR8 === undefined) {
+            option.useGR8 = defaultCompileOption.useGR8;
         }
 
         return option;

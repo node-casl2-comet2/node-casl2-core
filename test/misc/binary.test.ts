@@ -109,7 +109,7 @@ suite("binary test", () => {
 
     test("programs test", () => {
         const compiler = new Casl2({
-            useGR8AsSP: true,
+            useGR8: true,
             enableLabelScope: true,
             allowNagativeValueForEffectiveAddress: true
         });
