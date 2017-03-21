@@ -1,5 +1,6 @@
 "use strict";
 
+import { Casl2CompileOption } from "../compileOption";
 import { GR } from "@maxfield/node-casl2-comet2-core-common";
 import { LabelMap } from "../data/labelMap";
 import { Diagnostic } from "../diagnostics/types";
@@ -222,7 +223,7 @@ export class InstructionBase implements Instruction {
         this._scope = scope;
     }
 
-    public check(): Array<Diagnostic> {
+    public check(casl2CompileOption: Casl2CompileOption): Array<Diagnostic> {
         const diagnostics: Array<Diagnostic> = [];
         if (this._label !== undefined) {
             const label = this._label;
@@ -237,7 +238,11 @@ export class InstructionBase implements Instruction {
             // 0 ~ 65535の範囲にあるかチェックする
             const address = this._address as number;
 
-            if (address < 0 || address > 65535) {
+            const validAddress = casl2CompileOption.allowNagativeValueForEffectiveAddress
+                ? address < -32768 || address > 65535
+                : address < 0 || address > 65535;
+
+            if (validAddress) {
                 const [startIndex, endIndex] = this.getTokenIndex(this._originalTokens.address);
                 diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Address_out_of_range));
             }

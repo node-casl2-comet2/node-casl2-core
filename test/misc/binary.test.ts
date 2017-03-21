@@ -72,7 +72,8 @@ suite("binary test", () => {
 
     test("func test", () => {
         const compiler = new Casl2({
-            enableLabelScope: true
+            enableLabelScope: true,
+            allowNagativeValueForEffectiveAddress: true
         });
 
         dirTest("func", compiler);
@@ -109,7 +110,8 @@ suite("binary test", () => {
     test("programs test", () => {
         const compiler = new Casl2({
             useGR8AsSP: true,
-            enableLabelScope: true
+            enableLabelScope: true,
+            allowNagativeValueForEffectiveAddress: true
         });
 
         dirTest("programs", compiler);

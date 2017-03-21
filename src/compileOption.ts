@@ -10,4 +10,9 @@ export interface Casl2CompileOption {
      * ラベルのスコープを有効にする
      */
     enableLabelScope?: boolean;
+
+    /**
+     * 実効アドレスに負値をとることを許可します
+     */
+    allowNagativeValueForEffectiveAddress?: boolean;
 }

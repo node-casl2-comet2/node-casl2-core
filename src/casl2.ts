@@ -19,7 +19,8 @@ import { read } from "./reader";
 
 const defaultCompileOption: Casl2CompileOption = {
     useGR8AsSP: false,
-    enableLabelScope: false
+    enableLabelScope: false,
+    allowNagativeValueForEffectiveAddress: false
 };
 
 export interface LineTokensInfo {
@@ -252,7 +253,12 @@ export class Casl2 {
             }
         }
 
-        checkInstructions();
+        // 意味解析をする
+        for (const inst of instructions) {
+            for (const d of inst.check(this._compileOption)) {
+                diagnostics.push(d);
+            }
+        }
 
         return {
             tokensMap: tokensMap,
@@ -262,15 +268,6 @@ export class Casl2 {
             instructions: instructions,
             generatedInstructions: generatedInstructions,
             labelMap: labelMap
-        }
-
-        // 意味解析をする
-        function checkInstructions() {
-            for (const inst of instructions) {
-                for (const d of inst.check()) {
-                    diagnostics.push(d);
-                }
-            }
         }
     }
 
