@@ -95,7 +95,7 @@ export const Diagnostics = {
     },
     Unnecessary_operand: {
         code: 20,
-        category: DiagnosticCategory.Message,
+        category: DiagnosticCategory.Error,
         message: "余計なオペランドです。"
     },
     Missing_GR_r1: {
