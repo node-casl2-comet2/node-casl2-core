@@ -49,7 +49,12 @@ export interface SubroutineInfo {
 export class Casl2 {
 
     constructor(private _compileOption: Casl2CompileOption = defaultCompileOption) {
-
+        if (this._compileOption.enableLabelScope === undefined) {
+            this._compileOption.enableLabelScope = defaultCompileOption.enableLabelScope;
+        }
+        if (this._compileOption.useGR8AsSP === undefined) {
+            this._compileOption.useGR8AsSP = defaultCompileOption.useGR8AsSP;
+        }
     }
 
     analyze(lines: Array<string>): Casl2DiagnosticResult {
