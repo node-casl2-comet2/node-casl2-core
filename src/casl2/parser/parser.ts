@@ -295,13 +295,15 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                 // OLBL命令: ラベル名だけ有効でバイト長は0
                                 const olbl = new OLBL(line, label)
                                     .setOriginalTokens({
-                                        label: labelToken
+                                        label: labelToken,
+                                        instruction: inst
                                     });
                                 instructions.push(olbl);
                             } else {
                                 // 語数と同じ数のNOP命令に置き換える
                                 const ds = new DS(line, wordCount, label).setOriginalTokens({
-                                    label: labelToken
+                                    label: labelToken,
+                                    instruction: inst
                                 });
                                 instructions.push(ds);
                             }
@@ -347,7 +349,8 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                 const label = labelToken ? labelToken.value : undefined;
                                 const mdc = new MDC(label, line, undefined, ch)
                                     .setOriginalTokens({
-                                        label: labelToken
+                                        label: labelToken,
+                                        instruction: labelToken ? inst : undefined
                                     });
                                 mdcs.push(mdc);
                                 for (let i = 1; i < escaped.length; i++) {
@@ -364,7 +367,8 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                     const label = labelToken ? labelToken.value : undefined;
                                     const mdc = new MDC(label, line, constant)
                                         .setOriginalTokens({
-                                            label: labelToken
+                                            label: labelToken,
+                                            instruction: labelToken ? inst : undefined
                                         });
                                     mdcs.push(mdc);
                                 }
