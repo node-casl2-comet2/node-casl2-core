@@ -108,7 +108,7 @@ suite("binary test", () => {
 
     test("programs test", () => {
         const compiler = new Casl2({
-            useGR8: true,
+            useGR8AsSP: true,
             enableLabelScope: true
         });
 

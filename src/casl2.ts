@@ -18,8 +18,8 @@ import { TokenInfo } from "./casl2/lexer/token";
 import { read } from "./reader";
 
 const defaultCompileOption: Casl2CompileOption = {
-    useGR8: false,
-    enableLabelScope: true
+    useGR8AsSP: false,
+    enableLabelScope: false
 };
 
 export interface LineTokensInfo {
@@ -64,9 +64,6 @@ export class Casl2 {
         // フェーズ1: で宣言された定数などはとりあえず置いておいて分かることを解析
         // フェーズ2: =で宣言された定数を配置する
         // フェーズ3: アドレス解決フェーズ
-        const lexerOption = {
-            useGR8: this._compileOption.useGR8
-        };
 
         function pushDiagnostics(diagnos: Array<Diagnostic>) {
             for (const d of diagnos) {
