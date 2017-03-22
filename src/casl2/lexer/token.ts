@@ -37,7 +37,7 @@ export enum TokenType {
 
 export const TokenDefinitions: Array<TokenDefinition> = [
     new TokenDefinition(TokenType.TINSTRUCTION, /\b(START|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP)\b/),
-    new TokenDefinition(TokenType.TGR, /GR\d/),
+    new TokenDefinition(TokenType.TGR, /GR[0-8]/),
     new TokenDefinition(TokenType.TLABEL, /[A-Z][0-9A-Z]*/),
     new TokenDefinition(TokenType.TSPACE, /\s+/),
     new TokenDefinition(TokenType.TCOMMASPACE, /\s*,\s*/),
