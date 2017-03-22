@@ -46,6 +46,10 @@ export interface SubroutineInfo {
 export class Casl2 {
     private _compileOption: Casl2CompileOption;
 
+    get compileOption() {
+        return this._compileOption;
+    }
+
     constructor(compileOption?: Casl2CompileOption) {
         this._compileOption = this.mergeCompileOption(compileOption);
     }
@@ -326,7 +330,7 @@ export class Casl2 {
         return CompileResult.create(true, diagnostics, instructions, labelMap, hexes, debuggingInfo);
     }
 
-    changeCompileOption(option: Casl2CompileOption) {
+    changeCompileOption(option: Casl2CompileOption): void {
         this._compileOption = this.mergeCompileOption(option);
     }
 
