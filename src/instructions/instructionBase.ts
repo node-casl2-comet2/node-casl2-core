@@ -1,7 +1,7 @@
 "use strict";
 
 import { Casl2CompileOption } from "../compileOption";
-import { GR } from "@maxfield/node-casl2-comet2-core-common";
+import { GR, grToString } from "@maxfield/node-casl2-comet2-core-common";
 import { LabelMap } from "../data/labelMap";
 import { Diagnostic } from "../diagnostics/types";
 import { createDiagnostic } from "../diagnostics/diagnosticMessage";
@@ -247,6 +247,18 @@ export class InstructionBase implements Instruction {
                 diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Address_out_of_range));
             }
         }
+
+        if (!casl2CompileOption.useGR8) {
+            if (this._r1 !== undefined && this._r1 === GR.GR8_SP) {
+                const [startIndex, endIndex] = this.getTokenIndex(this._originalTokens.r1);
+                diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Invalid_GR_0_, grToString(this._r1)));
+            }
+            if (this._r2 !== undefined && this._r2 === GR.GR8_SP) {
+                const [startIndex, endIndex] = this.getTokenIndex(this._originalTokens.r2);
+                diagnostics.push(createDiagnostic(this._lineNumber, startIndex, endIndex, Diagnostics.Invalid_GR_0_, grToString(this._r2)));
+            }
+        }
+
         return diagnostics;
     }
 

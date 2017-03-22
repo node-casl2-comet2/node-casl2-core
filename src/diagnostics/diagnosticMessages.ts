@@ -61,12 +61,12 @@ export const Diagnostics = {
     Invalid_GR_0_: {
         code: 12,
         category: DiagnosticCategory.Error,
-        message: "{0} はGRではありません。"
+        message: "{0} は有効なGRではありません。"
     },
     Word_count_should_be_given_by_decimal: {
         code: 13,
         category: DiagnosticCategory.Error,
-        message: "{0} はGRではありません。"
+        message: "'語数' は10進定数で指定する必要があります。"
     },
     Cannot_escape_single_quotes: {
         code: 14,

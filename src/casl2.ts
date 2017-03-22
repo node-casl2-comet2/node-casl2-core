@@ -7,7 +7,6 @@ import { CompileResult, DebuggingInfo } from "./compileResult";
 import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
 import { Casl2CompileOption, defaultCompileOption } from "./compileOption";
-import { LexerOption } from "./casl2/lexerOption";
 import { Diagnostic } from "./diagnostics/types";
 import { createDiagnostic } from "./diagnostics/diagnosticMessage";
 import { Diagnostics } from "./diagnostics/diagnosticMessages";
