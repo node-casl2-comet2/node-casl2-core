@@ -274,8 +274,10 @@ export class Casl2 {
         for (const inst of instructions) {
             if (inst.lineNumber >= 0 && inst.instructionName !== "END") {
                 if (inst.instructionName === "START") {
-                    const address = labelMap.get(inst.label as string)!.address;
-                    subroutineMap.set(address, inst.lineNumber);
+                    const labelInfo = labelMap.get(inst.label as string);
+                    if (labelInfo === undefined) throw new Error();
+
+                    subroutineMap.set(labelInfo.address, inst.lineNumber);
                 } else {
                     addressLineMap.set(byteOffset / 2, inst.lineNumber);
                 }
@@ -308,7 +310,7 @@ export class Casl2 {
         const compileSuccess = diagnostics.length == 0;
         if (!compileSuccess) {
             // コンパイル失敗の場合
-            return CompileResult.create(false, diagnostics, instructions, labelMap);
+            return CompileResult.create(false, diagnostics, instructions, labelMap, undefined, debuggingInfo);
         }
 
         // コンパイル成功の場合
