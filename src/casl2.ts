@@ -6,7 +6,7 @@ import { TokenType } from "./casl2/lexer/token";
 import { CompileResult, DebuggingInfo } from "./compileResult";
 import { LabelMap, LabelInfo } from "./data/labelMap";
 import { RandomLabelGenerator } from "./helpers/randomLabelGenerator";
-import { Casl2CompileOption } from "./compileOption";
+import { Casl2CompileOption, defaultCompileOption } from "./compileOption";
 import { LexerOption } from "./casl2/lexerOption";
 import { Diagnostic } from "./diagnostics/types";
 import { createDiagnostic } from "./diagnostics/diagnosticMessage";
@@ -16,12 +16,8 @@ import { parseAll } from "./casl2/parser/parser"
 import { splitToTokens } from "./casl2/lexer/lexer";
 import { TokenInfo } from "./casl2/lexer/token";
 import { read } from "./reader";
+import * as _ from "lodash";
 
-const defaultCompileOption: Casl2CompileOption = {
-    useGR8: false,
-    enableLabelScope: false,
-    allowNagativeValueForEffectiveAddress: false
-};
 
 export interface LineTokensInfo {
     tokens: Array<TokenInfo>;
@@ -336,17 +332,6 @@ export class Casl2 {
 
     // 設定されていないオプションをデフォルト設定にする
     private mergeCompileOption(option?: Casl2CompileOption) {
-        if (option === undefined) {
-            return defaultCompileOption;
-        }
-
-        if (option.enableLabelScope === undefined) {
-            option.enableLabelScope = defaultCompileOption.enableLabelScope;
-        }
-        if (option.useGR8 === undefined) {
-            option.useGR8 = defaultCompileOption.useGR8;
-        }
-
-        return option;
+        return _.defaults(option, defaultCompileOption);
     }
 }

@@ -16,3 +16,10 @@ export interface Casl2CompileOption {
      */
     allowNagativeValueForEffectiveAddress?: boolean;
 }
+
+
+export const defaultCompileOption: Casl2CompileOption = {
+    useGR8: false,
+    enableLabelScope: false,
+    allowNagativeValueForEffectiveAddress: false
+};
