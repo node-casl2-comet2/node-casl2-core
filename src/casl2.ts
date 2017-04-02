@@ -283,6 +283,16 @@ export class Casl2 {
                 }
             }
 
+            // DS命令の場合は語数の分だけ
+            // addressLineMapに登録する
+            if (inst.instructionName === "DS") {
+                _.range(0, inst.byteLength / 2)
+                    .map(offset => {
+                        addressLineMap.set(byteOffset / 2 + offset, inst.lineNumber);
+                    });
+            }
+
+            // DS命令で確保された領域を記録する
             if (inst.instructionName === "DS") {
                 const start = byteOffset / 2;
                 const end = start + inst.byteLength / 2;
