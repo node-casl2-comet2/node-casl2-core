@@ -240,6 +240,11 @@ export class Casl2 {
             }
         }
 
+        // 最後の行までscopeMapを埋める
+        for (let i = lastScopeSetLine + 1; i < lines.length; i++) {
+            scopeMap.set(i, scope);
+        }
+
         // アドレス解決する
         for (const inst of instructions) {
             const error = inst.resolveAddress(labelMap);
