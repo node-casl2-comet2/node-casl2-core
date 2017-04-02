@@ -339,7 +339,7 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                 return escaped;
                             }
 
-                            function splitStringLiteralToMdcs(stringToken: TokenInfo, labelToken?: TokenInfo, line?: number): void {
+                            function splitStringLiteralToMdcs(stringToken: TokenInfo, line: number, labelToken?: TokenInfo): void {
                                 if (stringToken.type != TokenType.TSTRING) throw new Error();
 
                                 const escaped = validateStringConstant(stringToken);
@@ -355,14 +355,14 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                                 mdcs.push(mdc);
                                 for (let i = 1; i < escaped.length; i++) {
                                     const ch = escaped.charAt(i);
-                                    const mdc = new MDC(undefined, undefined, undefined, ch);
+                                    const mdc = new MDC(undefined, line, undefined, ch);
                                     mdcs.push(mdc);
                                 }
                             }
 
-                            function addMDC(constant: string | number, labelToken?: TokenInfo, line?: number) {
+                            function addMDC(constant: string | number, line: number, labelToken?: TokenInfo) {
                                 if (token().type == TokenType.TSTRING) {
-                                    splitStringLiteralToMdcs(token(), labelToken, line);
+                                    splitStringLiteralToMdcs(token(), line, labelToken);
                                 } else {
                                     const label = labelToken ? labelToken.value : undefined;
                                     const mdc = new MDC(label, line, constant)
@@ -375,13 +375,12 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
                             }
 
                             const constant = toConst(token());
-                            // 最初の命令にだけラベルと行番号を与える
-                            addMDC(constant, labelToken, line);
+                            addMDC(constant, line, labelToken);
 
                             while (consumeToken(TokenType.TCOMMASPACE, false)) {
                                 if (consumeConstant()) {
                                     const constant = toConst(token());
-                                    addMDC(constant);
+                                    addMDC(constant, line);
                                 } else {
                                     break;
                                 }
