@@ -503,7 +503,11 @@ function toAddress(token: TokenInfo): string | number {
     // 16進定数は#で始まる数字の連続である
     if (str.charAt(0) == "#") {
         const address = parseInt(str.slice(1), 16);
-        if (isNaN(address)) return address;
+        if (isNaN(address)) {
+            throw new Error();
+        } else {
+            return address;
+        }
     }
 
     // アドレスは10進数かも
