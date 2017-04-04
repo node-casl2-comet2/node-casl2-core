@@ -14,12 +14,12 @@ export interface Casl2CompileOption {
     /**
      * 実効アドレスに負値をとることを許可します
      */
-    allowNagativeValueForEffectiveAddress?: boolean;
+    allowNegativeValueForEffectiveAddress?: boolean;
 }
 
 
 export const defaultCompileOption: Casl2CompileOption = {
     useGR8: false,
     enableLabelScope: false,
-    allowNagativeValueForEffectiveAddress: false
+    allowNegativeValueForEffectiveAddress: false
 };

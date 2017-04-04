@@ -238,7 +238,7 @@ export class InstructionBase implements Instruction {
             // 0 ~ 65535の範囲にあるかチェックする
             const address = this._address as number;
 
-            const validAddress = casl2CompileOption.allowNagativeValueForEffectiveAddress
+            const validAddress = casl2CompileOption.allowNegativeValueForEffectiveAddress
                 ? address < -32768 || address > 65535
                 : address < 0 || address > 65535;
 
