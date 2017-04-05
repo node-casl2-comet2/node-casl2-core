@@ -14,7 +14,7 @@ function createTokenInfo(token: string, type: TokenType, startIndex: number, end
     };
 }
 
-function testSplitToTokens(line: string, expected: Array<[string, TokenType, number, number]>) {
+function testSplitToTokens(line: string, expected: [string, TokenType, number, number][]) {
     const tokens = splitToTokens(line, 1);
     assert(tokens.success);
 

@@ -33,9 +33,9 @@ export enum TokenType {
     TENDOFLINE = 22,
 
     TUNKNOWN = 30
-};
+}
 
-export const TokenDefinitions: Array<TokenDefinition> = [
+export const TokenDefinitions: TokenDefinition[] = [
     new TokenDefinition(TokenType.TINSTRUCTION, /\b(START|END|DS|DC|IN|OUT|RPUSH|RPOP|LD|ST|LAD|ADDA|ADDL|SUBA|SUBL|AND|OR|XOR|CPA|CPL|SLA|SRA|SLL|SRL|JPL|JMI|JNZ|JZE|JOV|JUMP|PUSH|POP|CALL|RET|SVC|NOP)\b/),
     new TokenDefinition(TokenType.TGR, /GR[0-8]/),
     new TokenDefinition(TokenType.TLABEL, /[A-Z][0-9A-Z]*/),

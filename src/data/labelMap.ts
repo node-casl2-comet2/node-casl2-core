@@ -18,7 +18,7 @@ export interface LabelInfo {
     /**
      * ラベルを参照しているトークン
      */
-    references?: Array<TokenInfo>;
+    references?: TokenInfo[];
 }
 
 export interface BindLabelInfo {
@@ -34,13 +34,13 @@ export interface BindLabelInfo {
 }
 
 export interface AllReferences {
-    references: Array<TokenInfo>;
+    references: TokenInfo[];
     declaration?: TokenInfo;
 }
 
 export interface AllLabels {
-    subroutineLabels: Array<TokenInfo>;
-    labels: Array<TokenInfo>
+    subroutineLabels: TokenInfo[];
+    labels: TokenInfo[];
 }
 
 /**
@@ -117,7 +117,7 @@ export class LabelMap {
         }
     }
 
-    getAllReferenceableLabels(scope: number): Array<TokenInfo> {
+    getAllReferenceableLabels(scope: number): TokenInfo[] {
         // グローバルに参照できるものと
         // 同じスコープのものに絞る
         // スコープのあるものは1_L1のようにスコープ付きの名前で登録されているので
@@ -144,7 +144,7 @@ export class LabelMap {
         const filter = (regex: RegExp) => {
             return Array.from(this._map.keys()).filter(x => x.match(regex))
                 .map(x => this._map.get(x)!.token!);
-        }
+        };
 
         const subroutineLabels = filter(/^\D/);
         const labels = filter(/^\d/);

@@ -8,10 +8,10 @@ import { MemoryRange } from "@maxfield/node-casl2-comet2-core-common";
 
 export interface CompileResult {
     success: boolean;
-    diagnostics: Array<Diagnostic>;
-    instructions: Array<InstructionBase>;
+    diagnostics: Diagnostic[];
+    instructions: InstructionBase[];
     labelMap: LabelMap;
-    hexes?: Array<number>;
+    hexes?: number[];
     debuggingInfo?: DebuggingInfo;
 }
 
@@ -26,18 +26,18 @@ export interface DebuggingInfo {
      */
     subroutineMap: Map<number, number>;
 
-    subroutinesInfo: Array<SubroutineInfo>;
+    subroutinesInfo: SubroutineInfo[];
 
     /**
      * DS命令により確保された領域
      */
-    dsRanges: Array<MemoryRange>;
+    dsRanges: MemoryRange[];
 }
 
 export namespace CompileResult {
     export function create(
-        success: boolean, diagnostics: Array<Diagnostic>, instructions: Array<InstructionBase>,
-        labelMap: LabelMap, hexes?: Array<number>, debuggingInfo?: DebuggingInfo): CompileResult {
+        success: boolean, diagnostics: Diagnostic[], instructions: InstructionBase[],
+        labelMap: LabelMap, hexes?: number[], debuggingInfo?: DebuggingInfo): CompileResult {
         return { success, diagnostics, instructions, labelMap, hexes, debuggingInfo };
     }
 }

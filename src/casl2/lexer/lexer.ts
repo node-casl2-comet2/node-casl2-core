@@ -8,8 +8,8 @@ import { createDiagnostic } from "../../diagnostics/diagnosticMessage";
 import { TokenDefinitions, TokenType, TokenInfo } from "../lexer/token";
 import { Expected } from "../../expected";
 
-export function splitToTokens(line: string, lineNumber: number): Expected<Array<TokenInfo>, Diagnostic> {
-    const result: Array<TokenInfo> = [];
+export function splitToTokens(line: string, lineNumber: number): Expected<TokenInfo[], Diagnostic> {
+    const result: TokenInfo[] = [];
 
     const createError = (startIndex: number, endIndex: number) => createDiagnostic(lineNumber, startIndex, endIndex, Diagnostics.Invalid_instruction_line);
     function createTokenInfo(token: string, type: TokenType, startIndex: number, endIndex: number): TokenInfo {
@@ -39,7 +39,7 @@ export function splitToTokens(line: string, lineNumber: number): Expected<Array<
         }
 
         return [false, currentIndex];
-    };
+    }
 
     let index = 0;
 

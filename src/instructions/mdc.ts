@@ -10,7 +10,7 @@ export class MDC extends InstructionBase {
         this._charLiteral = charLiteral;
     }
 
-    public toHex(): Array<number> {
+    public toHex(): number[] {
         if (this._charLiteral) {
             if (this._charLiteral.length != 1) throw new Error();
 

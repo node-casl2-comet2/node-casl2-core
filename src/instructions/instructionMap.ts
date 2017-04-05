@@ -4,7 +4,7 @@ import { instructionsInfo, InstructionInfo } from "@maxfield/node-casl2-comet2-c
 
 export const instructionMap = createInstructionMap(instructionsInfo);
 
-function createInstructionMap(info: Array<InstructionInfo>): Map<string, InstructionInfo> {
+function createInstructionMap(info: InstructionInfo[]): Map<string, InstructionInfo> {
     const map = new Map<string, InstructionInfo>();
 
     for (const x of info) {
@@ -18,7 +18,7 @@ function createInstructionMap(info: Array<InstructionInfo>): Map<string, Instruc
                 type: v.type,
                 argumentType: v.argumentType + x.argumentType,
                 code: Math.min(x.code, v.code)
-            }
+            };
 
             // 入れ替え
             map.set(key, merge);

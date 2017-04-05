@@ -33,7 +33,7 @@ suite("debugging", () => {
     test("ds ranges", () => {
         const debuggingInfo = compile("./test/testdata/debugging/dsRanges.cas");
 
-        const dsRangesExpected: Array<MemoryRange> = [
+        const dsRangesExpected: MemoryRange[] = [
             { start: 2, end: 12 },
             { start: 14, end: 34 }
         ];

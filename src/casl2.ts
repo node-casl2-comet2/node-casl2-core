@@ -11,7 +11,7 @@ import { Diagnostic } from "./diagnostics/types";
 import { createDiagnostic } from "./diagnostics/diagnosticMessage";
 import { Diagnostics } from "./diagnostics/diagnosticMessages";
 
-import { parseAll } from "./casl2/parser/parser"
+import { parseAll } from "./casl2/parser/parser";
 import { splitToTokens } from "./casl2/lexer/lexer";
 import { TokenInfo } from "./casl2/lexer/token";
 import { read } from "./reader";
@@ -19,17 +19,17 @@ import * as _ from "lodash";
 
 
 export interface LineTokensInfo {
-    tokens: Array<TokenInfo>;
+    tokens: TokenInfo[];
     success: boolean;
 }
 
 export interface Casl2DiagnosticResult {
-    subroutinesInfo: Array<SubroutineInfo>;
+    subroutinesInfo: SubroutineInfo[];
     tokensMap: Map<number, LineTokensInfo>;
     scopeMap: Map<number, number>;
-    diagnostics: Array<Diagnostic>;
-    instructions: Array<InstructionBase>;
-    generatedInstructions: Array<InstructionBase>;
+    diagnostics: Diagnostic[];
+    instructions: InstructionBase[];
+    generatedInstructions: InstructionBase[];
     labelMap: LabelMap;
 }
 
@@ -53,20 +53,20 @@ export class Casl2 {
         this._compileOption = this.mergeCompileOption(compileOption);
     }
 
-    analyze(lines: Array<string>): Casl2DiagnosticResult {
-        const diagnostics: Array<Diagnostic> = [];
-        const instructions: Array<InstructionBase> = [];
+    analyze(lines: string[]): Casl2DiagnosticResult {
+        const diagnostics: Diagnostic[] = [];
+        const instructions: InstructionBase[] = [];
         const tokensMap: Map<number, LineTokensInfo> = new Map();
 
         // ='A' → MDC 'A'のように自動生成される命令を格納する
-        const generatedInstructions: Array<InstructionBase> = [];
+        const generatedInstructions: InstructionBase[] = [];
 
         // コンパイルは3段階で行う
         // フェーズ1: で宣言された定数などはとりあえず置いておいて分かることを解析
         // フェーズ2: =で宣言された定数を配置する
         // フェーズ3: アドレス解決フェーズ
 
-        function pushDiagnostics(diagnos: Array<Diagnostic>) {
+        function pushDiagnostics(diagnos: Diagnostic[]) {
             for (const d of diagnos) {
                 diagnostics.push(d);
             }
@@ -155,7 +155,7 @@ export class Casl2 {
         }
 
         const scopeMap = new Map<number, number>();
-        const subroutinesInfo: Array<SubroutineInfo> = [];
+        const subroutinesInfo: SubroutineInfo[] = [];
         let lastScopeSetLine = -1;
         // 命令のラベルに実アドレスを割り当てる
         let scope = 1;
@@ -268,13 +268,13 @@ export class Casl2 {
             instructions: instructions,
             generatedInstructions: generatedInstructions,
             labelMap: labelMap
-        }
+        };
     }
 
-    private createDebuggingInfo(instructions: Array<InstructionBase>, labelMap: LabelMap, subroutinesInfo: Array<SubroutineInfo>): DebuggingInfo {
+    private createDebuggingInfo(instructions: InstructionBase[], labelMap: LabelMap, subroutinesInfo: SubroutineInfo[]): DebuggingInfo {
         const addressLineMap = new Map<number, number>();
         const subroutineMap = new Map<number, number>();
-        const dsRanges: Array<MemoryRange> = [];
+        const dsRanges: MemoryRange[] = [];
         let byteOffset = 0;
         for (const inst of instructions) {
             if (inst.lineNumber >= 0 && inst.instructionName !== "END") {
@@ -334,7 +334,7 @@ export class Casl2 {
         }
 
         const hex = instructions.map(x => x.toHex());
-        const flatten = [].concat.apply([], hex) as Array<number>;
+        const flatten = [].concat.apply([], hex) as number[];
         const hexes = flatten.filter(x => x != -1);
 
         const firstStartInstLabel = instructions[0].label as string;

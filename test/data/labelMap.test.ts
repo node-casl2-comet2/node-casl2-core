@@ -24,4 +24,4 @@ suite("LabelMap test", () => {
         const info = map.get("CASL") as LabelInfo;
         assert.equal(info.address, 0x03);
     });
-})
+});

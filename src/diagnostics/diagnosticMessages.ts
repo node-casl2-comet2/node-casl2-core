@@ -148,4 +148,4 @@ export const Diagnostics = {
         category: DiagnosticCategory.Error,
         message: "実効アドレスは0 ~ 65535の範囲である必要があります。"
     }
-}
+};

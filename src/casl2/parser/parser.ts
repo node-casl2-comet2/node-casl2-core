@@ -29,7 +29,7 @@ const unknownToken: TokenInfo = {
 
 class Scanner {
     private _index: number;
-    constructor(private _tokens: Array<TokenInfo>) {
+    constructor(private _tokens: TokenInfo[]) {
         this._index = 0;
     }
 
@@ -55,9 +55,9 @@ class Scanner {
     }
 }
 
-export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array<InstructionBase>, Diagnostic> {
-    const allDiagnostics: Array<Diagnostic> = [];
-    const instructions: Array<InstructionBase> = [];
+export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<InstructionBase[], Diagnostic> {
+    const allDiagnostics: Diagnostic[] = [];
+    const instructions: InstructionBase[] = [];
     tokensMap.forEach((info, key) => {
         if (info.success) {
             parse(info.tokens, key);
@@ -70,7 +70,7 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
         errors: allDiagnostics
     };
 
-    function isEmptyOrCommentLine(tokens: Array<TokenInfo>): boolean {
+    function isEmptyOrCommentLine(tokens: TokenInfo[]): boolean {
         if (tokens.length == 0) return true;
         if (tokens.length == 1) {
             const [t0] = tokens;
@@ -85,12 +85,12 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
         return false;
     }
 
-    function parse(tokens: Array<TokenInfo>, line: number): void {
+    function parse(tokens: TokenInfo[], line: number): void {
         // 空行やコメント行はスキップする
         if (isEmptyOrCommentLine(tokens)) return;
 
         const scanner = new Scanner(tokens);
-        const diagnostics: Array<Diagnostic> = [];
+        const diagnostics: Diagnostic[] = [];
         let instruction: InstructionBase | undefined = undefined;
 
         let currentToken: TokenInfo = scanner.scan();
@@ -313,7 +313,7 @@ export function parseAll(tokensMap: Map<number, LineTokensInfo>): Expected<Array
 
                     case ArgumentType.constants_DC:
                         if (consumeConstant()) {
-                            const mdcs: Array<MDC> = [];
+                            const mdcs: MDC[] = [];
 
                             function validateStringConstant(stringToken: TokenInfo): string | undefined {
                                 if (stringToken.type != TokenType.TSTRING) throw new Error();

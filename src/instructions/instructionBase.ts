@@ -83,7 +83,7 @@ export class InstructionBase implements Instruction {
         return [this._label, this._instructionName, this._r1, this._r2, this._address].join("   ");
     }
 
-    public toHex(): Array<number> {
+    public toHex(): number[] {
         if (!this._isConfirmed) throw new Error("Not confirmed instruction.");
 
         // .comファイルに還元されない命令は空配列を返す
@@ -223,8 +223,8 @@ export class InstructionBase implements Instruction {
         this._scope = scope;
     }
 
-    public check(casl2CompileOption: Casl2CompileOption): Array<Diagnostic> {
-        const diagnostics: Array<Diagnostic> = [];
+    public check(casl2CompileOption: Casl2CompileOption): Diagnostic[] {
+        const diagnostics: Diagnostic[] = [];
         if (this._label !== undefined) {
             const label = this._label;
             // ラベルの長さをチェック

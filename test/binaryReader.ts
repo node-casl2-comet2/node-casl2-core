@@ -2,15 +2,15 @@
 
 import * as fs from "fs";
 
-export function binaryRead(path: string): Array<number> {
+export function binaryRead(path: string): number[] {
     const buffer = fs.readFileSync(path);
     const dump = buffer.toString("hex", 0, buffer.length);
     const hex = toHex(dump);
     return hex;
 }
 
-function toHex(dump: string): Array<number> {
-    const memory: Array<number> = [];
+function toHex(dump: string): number[] {
+    const memory: number[] = [];
 
     const length = dump.length;
 

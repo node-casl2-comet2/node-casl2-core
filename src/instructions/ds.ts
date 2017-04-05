@@ -12,7 +12,7 @@ export class DS extends InstructionBase {
         return 2 * this._wordCount;
     }
 
-    public toHex(): Array<number> {
+    public toHex(): number[] {
         return _.times(this._wordCount).map(_ => 0x0000);
     }
 }

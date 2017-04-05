@@ -24,7 +24,7 @@ suite("Compile option tests", () => {
 
             const result = compiler.compile(casFilePath);
             assert.equal(result.success, expectedCompileResult);
-        }
+        };
 
         test("enable label scope", () => {
             mytest(true, true);

@@ -12,7 +12,7 @@ export class INOUT extends InstructionBase {
     protected _lengthAddress: number | string;
 
     public toHex(): number[] {
-        const hex: Array<number> = [];
+        const hex: number[] = [];
         hex.push((this.code as number) << 0x08);
         hex.push(this.address as number);
         hex.push(this._lengthAddress as number);

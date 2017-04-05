@@ -2,7 +2,7 @@
 
 import { DiagnosticCategory, DiagnosticMessage, Diagnostic } from "./types";
 
-export function createDiagnostic(line: number, startIndex: number, endIndex: number, message: DiagnosticMessage, ...args: Array<string | number>): Diagnostic {
+export function createDiagnostic(line: number, startIndex: number, endIndex: number, message: DiagnosticMessage, ...args: (string | number)[]): Diagnostic {
     let m = message.message;
     if (arguments.length > 3) {
         m = formatMessage(m, args);

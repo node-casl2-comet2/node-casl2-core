@@ -10,7 +10,7 @@ import { createDiagnostic } from "../../src/diagnostics/diagnosticMessage";
 import { Diagnostics } from "../../src/diagnostics/diagnosticMessages";
 import { createTokenInfo } from "../../src/casl2/lexer/token";
 
-function createInstructions(s: string): Array<InstructionBase> {
+function createInstructions(s: string): InstructionBase[] {
     const lineNumber = 0;
     const tokens = splitToTokens(s, lineNumber);
     assert(tokens.success);
@@ -31,7 +31,7 @@ function createInstruction(s: string) {
     return createInstructions(s)[0];
 }
 
-function hexTest(line: string, expected: Array<number>) {
+function hexTest(line: string, expected: number[]) {
     const instruction = createInstruction(line);
 
     assert.deepEqual(instruction.toHex(), expected);
@@ -65,7 +65,7 @@ suite("Instruction test", () => {
     // END命令
     test("END test", () => {
         // 引数なしパターン
-        const line = "    END"
+        const line = "    END";
         const instruction = createInstruction(line);
 
         assert(instruction.toHex().length == 0);
@@ -111,7 +111,7 @@ suite("Instruction test", () => {
         assert.deepEqual(mdcs[0].toHex(), [0x0041]);
 
         // 文字列定数(2文字以上)
-        line = "    DC 'ABC'"
+        line = "    DC 'ABC'";
         mdcs = createInstructions(line);
         assert(mdcs.length == 3);
         assert.deepEqual(mdcs[0].toHex(), [0x0041]);
@@ -158,12 +158,12 @@ suite("Instruction test", () => {
     // RPUSH命令
     test("RPUSH test", () => {
         hexTest("    RPUSH", [0xA000]);
-    })
+    });
 
     // RPOP命令
     test("RPOP test", () => {
         hexTest("    RPOP", [0xA100]);
-    })
+    });
 
     // LD命令
     test("LD test", () => {
