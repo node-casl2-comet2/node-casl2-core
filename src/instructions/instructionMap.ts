@@ -11,9 +11,14 @@ function createInstructionMap(info: Array<InstructionInfo>): Map<string, Instruc
         const key = x.instructionName;
         if (map.has(key)) {
             const v = map.get(key)!;
-            const merge = v;
-            merge.argumentType += x.argumentType;
-            merge.code = Math.min(x.code, v.code);
+
+            const merge: InstructionInfo = {
+                documentation: v.documentation,
+                instructionName: v.instructionName,
+                type: v.type,
+                argumentType: v.argumentType + x.argumentType,
+                code: Math.min(x.code, v.code)
+            }
 
             // 入れ替え
             map.set(key, merge);
